@@ -6,16 +6,16 @@ from numpy import (absolute, asarray, cos, degrees, divide, full, linspace, pi,
 from numpy.linalg import norm, solve
 from py2md.classes import MDHeading, MDReport, MDTable
 
-from .distributions import ConstantSpan, GeneralSpan
+from .shape import ConstantShape, GeneralShape, EllipticalShape
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
     from numpy import ndarray
 
-    from .distributions import Distribution
+    from .shape import Shape
 
 
-def CL_fn(ar: float , An: GeneralSpan) -> float:
+def CL_fn(ar: float , An: GeneralShape) -> float:
     return pi*ar*An[0]
 
 
@@ -27,20 +27,28 @@ class LiftingLineResult():
     rho: float = None
     name: str = None
     _al_rad: float = None
-    _cla: 'ndarray' = None
-    _An: GeneralSpan = None
+    _al_fn: 'Shape' = None
+    _An: GeneralShape = None
     _n: 'ndarray' = None
     _q: float = None
+    _gamma_fn: 'Shape' = None
     _gamma: 'ndarray' = None
+    _ali_fn: 'Shape' = None
     _ali: 'ndarray' = None
+    _wi_fn: 'Shape' = None
     _wi: 'ndarray' = None
+    _ale_fn: 'Shape' = None
     _ale: 'ndarray' = None
+    _l_fn: 'Shape' = None
     _l: 'ndarray' = None
+    _cl_fn: 'Shape' = None
     _cl: 'ndarray' = None
+    _di_fn: 'Shape' = None
+    _di: 'ndarray' = None
+    _cdi_fn: 'Shape' = None
+    _cdi: float = None
     _CL: float = None
     _L: float = None
-    _di: 'ndarray' = None
-    _cdi: float = None
     _CDi: float = None
     _Di: float = None
     _delta: float = None
@@ -48,6 +56,7 @@ class LiftingLineResult():
     _dcl: 'ndarray' = None
     _norm_dcl: float = None
     _th: 'ndarray' = None
+    _cla: 'ndarray' = None
     _cos_n_th: Dict[int, 'ndarray'] = None
     _sin_n_th: Dict[int, 'ndarray'] = None
     _y: 'ndarray' = None
@@ -81,6 +90,12 @@ class LiftingLineResult():
         self._al_rad = al_rad
 
     @property
+    def al_fn(self) -> 'Shape':
+        if self._al_fn is None:
+            self._al_fn = ConstantShape(self.al_rad)
+        return self._al_fn
+
+    @property
     def cla(self) -> 'ndarray':
         if self._cla is None:
             self._cla = self.liftingline.cla_fn(self.liftingline.s)
@@ -93,7 +108,7 @@ class LiftingLineResult():
         self._cla = cla
 
     @property
-    def An(self) -> GeneralSpan:
+    def An(self) -> GeneralShape:
         if self._An is None:
             if self.stall:
                 Ana, An0 = self.liftingline.solve(self.cla)
@@ -104,7 +119,7 @@ class LiftingLineResult():
         return self._An
 
     @An.setter
-    def An(self, An: GeneralSpan) -> None:
+    def An(self, An: GeneralShape) -> None:
         self.reset()
         self._An = An
 
@@ -125,10 +140,23 @@ class LiftingLineResult():
         self._q = q
 
     @property
+    def gamma_fn(self) -> 'Shape':
+        if self._gamma_fn is None:
+            self._gamma_fn = 2*self.liftingline.b*self.vel*self.An
+        return self._gamma_fn
+
+    @property
     def gamma(self) -> 'ndarray':
         if self._gamma is None:
-            gamma = 2*self.vel*self.liftingline.b*self.An(self.liftingline.s)
-        return gamma
+            self._gamma = 2*self.vel*self.liftingline.b*self.An(self.liftingline.s)
+        return self._gamma
+
+    @property
+    def ali_fn(self) -> 'Shape':
+        if self._ali_fn is None:
+            nAn = self.An*self.n
+            self._ali_fn = nAn/EllipticalShape()
+        return self._ali_fn
 
     @property
     def ali(self) -> 'ndarray':
@@ -139,10 +167,25 @@ class LiftingLineResult():
         return self._ali
 
     @property
+    def wi_fn(self) -> 'Shape':
+        if self._wi_fn is None:
+            self._wi_fn = self.vel*self.ali_fn
+        return self._wi_fn
+
+    @property
     def wi(self) -> 'ndarray':
         if self._wi is None:
             self._wi = self.vel*self.ali
         return self._wi
+
+    @property
+    def ale_fn(self) -> 'Shape':
+        if self._ale_fn is None:
+            al_rad_fn = ConstantShape(self.al_rad)
+            alg_fn = self.liftingline.alg_fn
+            al0_fn = self.liftingline.al0_fn
+            self._ale_fn = al_rad_fn + alg_fn - al0_fn - self.ali_fn
+        return self._ale_fn
 
     @property
     def ale(self) -> 'ndarray':
@@ -151,10 +194,52 @@ class LiftingLineResult():
         return self._ale
 
     @property
+    def l_fn(self) -> 'Shape':
+        if self._l_fn is None:
+            self._l_fn = self.rho*self.vel*self.gamma_fn
+        return self._l_fn
+
+    @property
     def l(self) -> 'ndarray':
         if self._l is None:
             self._l = self.rho*self.vel*self.gamma
         return self._l
+
+    @property
+    def cl_fn(self) -> 'Shape':
+        if self._cl_fn is None:
+            self._cl_fn = self.l_fn/self.liftingline.c_fn/self.q
+        return self._cl_fn
+
+    @property
+    def cl(self) -> float:
+        if self._cl is None:
+            self._cl = self.l/self.liftingline.c/self.q
+        return self._cl
+
+    @property
+    def di_fn(self) -> 'Shape':
+        if self._di_fn is None:
+            self._di_fn = self.l_fn*self.ali_fn
+        return self._di_fn
+
+    @property
+    def di(self) -> 'ndarray':
+        if self._di is None:
+            self._di = self.l*self.ali
+        return self._di
+
+    @property
+    def cdi_fn(self) -> 'Shape':
+        if self._cdi_fn is None:
+            self._cdi_fn = self.di_fn/self.liftingline.c_fn/self.q
+        return self._cdi_fn
+
+    @property
+    def cdi(self) -> float:
+        if self._cdi is None:
+            self._cdi = self.di/self.liftingline.c/self.q
+        return self._cdi
 
     @property
     def CL(self) -> float:
@@ -167,12 +252,6 @@ class LiftingLineResult():
         self._CL = CL
 
     @property
-    def cl(self) -> float:
-        if self._cl is None:
-            self._cl = self.l/self.liftingline.c/self.q
-        return self._cl
-
-    @property
     def L(self) -> float:
         if self._L is None:
             self._L = self.q*self.liftingline.area*self.CL
@@ -181,18 +260,6 @@ class LiftingLineResult():
     @L.setter
     def L(self, L: float) -> None:
         self._L = L
-
-    @property
-    def di(self) -> 'ndarray':
-        if self._di is None:
-            self._di = self.liftingline.c*self.l
-        return self._di
-
-    @property
-    def cdi(self) -> float:
-        if self._cdi is None:
-            self._cdi = self.di/self.liftingline.c/self.q
-        return self._cdi
 
     @property
     def CDi(self) -> float:
@@ -346,8 +413,6 @@ class LiftingLineResult():
 
             cla -= dcla
 
-            # cla[dcla == 0.0] = self.liftingline.cla
-
             self.reset()
 
             self.cla = cla
@@ -366,11 +431,21 @@ class LiftingLineResult():
 
         return self
 
-    def set_lift_distribution(self, L: float, An: GeneralSpan) -> None:
+    def set_lift_distribution(self, L: float, An: GeneralShape) -> None:
         Sref = self.liftingline.area
         ar = self.liftingline.ar
         factor = L/self.q/Sref/ar/An.area/2
         self.An = An*factor
+
+    def set_lifting_line_twist(self) -> None:
+        b = self.liftingline.b
+        c_fn = self.liftingline.c_fn
+        al0_fn = self.liftingline.al0_fn
+        ali_fn = GeneralShape(self.An.An*self.An.n)/GeneralShape([1.0])
+        temp = self.An/c_fn
+        alg_fn = temp*2*b/pi + al0_fn + ali_fn
+        self.liftingline.alg_fn = alg_fn
+        self.liftingline.reset(excl=['_area', '_ar', '_th', '_s', '_y', '_c', '_al0'])
 
     def plot_gamma(self, ax: 'Axes' = None) -> 'Axes':
         if ax is None:
@@ -378,7 +453,7 @@ class LiftingLineResult():
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
-            ax.set_ylabel(r'Circulation - $\Gamma$ (m/s)')
+            ax.set_ylabel(r'Circulation Distribution - $\Gamma$ (m/s)')
         ax.plot(self.liftingline.y, self.gamma, label=self.name)
         return ax
 
@@ -388,7 +463,7 @@ class LiftingLineResult():
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
-            ax.set_ylabel(r'Induced Angle - $\alpha_i$ (deg)')
+            ax.set_ylabel(r'Induced Angle Distribution - $\alpha_i$ (deg)')
         ax.plot(self.liftingline.y, degrees(self.ali), label=self.name)
         return ax
 
@@ -398,7 +473,7 @@ class LiftingLineResult():
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
-            ax.set_ylabel(r'Induced Wash $w_i$ (m/s)')
+            ax.set_ylabel(r'Induced Wash Distribution $w_i$ (m/s)')
         ax.plot(self.liftingline.y, self.wi, label=self.name)
         return ax
 
@@ -408,7 +483,7 @@ class LiftingLineResult():
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
-            ax.set_ylabel(r'Effective Angle $\alpha_{eff}$ (deg)')
+            ax.set_ylabel(r'Effective Angle Distribution $\alpha_{eff}$ (deg)')
         ax.plot(self.liftingline.y, degrees(self.ale), label=self.name)
         return ax
 
@@ -438,7 +513,7 @@ class LiftingLineResult():
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
-            ax.set_ylabel(r'Lift Coefficient - $c_l$')
+            ax.set_ylabel(r'Lift Coefficient Distribution - $c_l$')
         ax.plot(self.liftingline.y, self.cl, label=self.name)
         return ax
 
@@ -448,7 +523,7 @@ class LiftingLineResult():
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
-            ax.set_ylabel(r'Induced Drag - $d_i$ (N/m)')
+            ax.set_ylabel(r'Induced Drag Distribution - $d_i$ (N/m)')
         ax.plot(self.liftingline.y, self.di, label=self.name)
         return ax
 
@@ -600,10 +675,10 @@ class LiftingLinePolar():
 class LiftingLine():
 
     name: str = None
-    c_fn: 'Distribution' = None
-    alg_fn: 'Distribution' = None
-    al0_fn: 'Distribution' = None
-    cla_fn: 'Distribution' = None
+    c_fn: 'Shape' = None
+    alg_fn: 'Shape' = None
+    al0_fn: 'Shape' = None
+    cla_fn: 'Shape' = None
     b: float = None
     num: int = None
     _area: float = None
@@ -615,20 +690,20 @@ class LiftingLine():
     _alg: 'ndarray' = None
     _al0: 'ndarray' = None
     _cla: 'ndarray' = None
-    _Ana: GeneralSpan = None
-    _An0: GeneralSpan = None
+    _Ana: GeneralShape = None
+    _An0: GeneralShape = None
     _CLa: float = None
     _CL0: float = None
     _aL0: float = None
-    clmax_fn: 'Distribution' = None
+    clmax_fn: 'Shape' = None
     _clmax: 'ndarray' = None
-    clmin_fn: 'Distribution' = None
+    clmin_fn: 'Shape' = None
     _clmin: 'ndarray' = None
 
-    def __init__(self, name: str, b: float, num: int, c_fn: 'Distribution',
-                 alg_fn: 'Distribution' = ConstantSpan(0.0),
-                 al0_fn: 'Distribution' = ConstantSpan(0.0),
-                 cla_fn: 'Distribution' = ConstantSpan(2*pi)) -> None:
+    def __init__(self, name: str, b: float, num: int, c_fn: 'Shape',
+                 alg_fn: 'Shape' = ConstantShape(0.0),
+                 al0_fn: 'Shape' = ConstantShape(0.0),
+                 cla_fn: 'Shape' = ConstantShape(2*pi)) -> None:
         self.name = name
         self.c_fn = c_fn
         self.alg_fn = alg_fn
@@ -774,7 +849,7 @@ class LiftingLine():
             raise ValueError('clmin is not correct size.')
         self._clmin = clmin
 
-    def solve(self, cla: Optional['ndarray'] = None) -> Optional[Tuple[GeneralSpan, GeneralSpan]]:
+    def solve(self, cla: Optional['ndarray'] = None) -> Optional[Tuple[GeneralShape, GeneralShape]]:
 
         if cla is None:
             claco4b = self.cla*self.c/4/self.b
@@ -798,13 +873,13 @@ class LiftingLine():
 
         if cla is None:
 
-            self.Ana = GeneralSpan(res[:, 0])
-            self.An0 = GeneralSpan(res[:, 1])
+            self.Ana = GeneralShape(res[:, 0])
+            self.An0 = GeneralShape(res[:, 1])
 
         else:
 
-            Ana = GeneralSpan(res[:, 0])
-            An0 = GeneralSpan(res[:, 1])
+            Ana = GeneralShape(res[:, 0])
+            An0 = GeneralShape(res[:, 1])
 
             return Ana, An0
 
@@ -876,7 +951,7 @@ class LiftingLine():
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
-            ax.set_ylabel(r'Zero Lift Angle of Attack $\alpha_{l0}$ (deg)')
+            ax.set_ylabel(r'Zero Lift Angle of Attack -w $\alpha_{l0}$ (deg)')
         ax.plot(self.y, degrees(self.al0), label=self.name)
         return ax
 
@@ -886,7 +961,7 @@ class LiftingLine():
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
-            ax.set_ylabel(r'alg')
+            ax.set_ylabel(r'Spanwise Twist - $\alpha_g$ (deg)')
         ax.plot(self.y, degrees(self.alg), label=self.name)
         return ax
 
@@ -896,7 +971,7 @@ class LiftingLine():
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
-            ax.set_ylabel('cla')
+            ax.set_ylabel(r'Lift Coefficient Slope - $c_{la}$ (1/rad)')
         ax.plot(self.y, self.cla, label=self.name)
         return ax
 
@@ -934,12 +1009,18 @@ class LiftingLine():
         table = MDTable()
         table.add_column('Name', 's', data=[self.name])
         table.add_column('Span (m)', '.1f', data=[self.b])
-        table.add_column('S<sub>ref</sub> (m<sup>2</sup>)', '.3f', data=[self.area])
-        table.add_column('AR', '.3f', data=[self.ar])
+        table.add_column('Area (m<sup>2</sup>)', '.3f', data=[self.area])
+        table.add_column('Aspect Ratio', '.3f', data=[self.ar])
+        report.add_object(table)
+        table = MDTable()
+        table.add_column('Name', 's', data=[self.name])
         table.add_column('C<sub>L&alpha;</sub>', '.3f', data=[self.CLa])
         table.add_column('C<sub>L0</sub>', '.3f', data=[self.CL0])
         table.add_column('&alpha;<sub>L0</sub> (deg)', '.3f', data=[degrees(self.aL0)])
-        table.add_column('N', 'd', data=[self.num])
+        report.add_object(table)
+        table = MDTable()
+        table.add_column('Name', 's', data=[self.name])
+        table.add_column('Number of Terms', 'd', data=[self.num])
         report.add_object(table)
         return report
 

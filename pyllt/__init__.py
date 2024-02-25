@@ -1,6 +1,6 @@
-from .distributions import BellSpan as BellSpan
-from .distributions import ConstantSpan as ConstantSpan
-from .distributions import EllipticalSpan as EllipticalSpan
-from .distributions import GeneralSpan as GeneralSpan
-from .distributions import TaperedSpan as TaperedSpan
+from .shape import BellShape as BellShape
+from .shape import ConstantShape as ConstantShape
+from .shape import EllipticalShape as EllipticalShape
+from .shape import GeneralShape as GeneralShape
+from .shape import TaperedShape as TaperedShape
 from .liftingline import LiftingLine as LiftingLine

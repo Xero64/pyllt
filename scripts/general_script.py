@@ -2,7 +2,7 @@
 # Import Dependencies
 from IPython.display import display_markdown
 from numpy import linspace, pi, radians
-from pyllt import BellSpan, ConstantSpan, EllipticalSpan, LiftingLine, TaperedSpan
+from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine, TaperedShape
 
 #%%
 # Flow Parameters
@@ -19,16 +19,16 @@ c_t = 0.6
 
 b_b = 1.2247*b
 
-cla_fn = ConstantSpan(2*pi)
+cla_fn = ConstantShape(2*pi)
 
-clmax_fn = ConstantSpan(1.4)
-clmin_fn = ConstantSpan(-1.4)
+clmax_fn = ConstantShape(1.4)
+clmin_fn = ConstantShape(-1.4)
 
-c_e_fn = EllipticalSpan(0.4)
-alg_fn_0 = ConstantSpan(0.0)
-al0_fn_0 = ConstantSpan(0.0)
+c_e_fn = EllipticalShape(0.4)
+alg_fn_0 = ConstantShape(0.0)
+al0_fn_0 = ConstantShape(0.0)
 
-c_b_fn = BellSpan(0.4)
+c_b_fn = BellShape(0.4)
 
 ll_e = LiftingLine('Elliptical', b, num, c_e_fn)
 display_markdown(ll_e)
@@ -41,9 +41,9 @@ fac = ll_e.area/((c_r + c_t)/2*b)
 c_r = c_r*fac
 c_t = c_t*fac
 
-c_t_fn = TaperedSpan(c_r, c_t)
-alg_fn = TaperedSpan(radians(4.0), radians(2.0))
-al0_fn = TaperedSpan(radians(-2.0), radians(0.0))
+c_t_fn = TaperedShape(c_r, c_t)
+alg_fn = TaperedShape(radians(4.0), radians(2.0))
+al0_fn = TaperedShape(radians(-2.0), radians(0.0))
 
 ll_t = LiftingLine('Tapered', b, num, c_t_fn, alg_fn, al0_fn)
 display_markdown(ll_t)
@@ -68,7 +68,7 @@ llr_e = ll_e.return_result_L(200.0, vel=vel, rho=rho)
 display_markdown(llr_e)
 
 llr_b = ll_b.return_result_L(200.0, vel=vel, rho=rho)
-llr_b.set_lift_distribution(200.0, BellSpan())
+llr_b.set_lift_distribution(200.0, BellShape())
 display_markdown(llr_b)
 
 print(f'llr_b.L/llr_e.L = {llr_b.L/llr_e.L:6f}')
@@ -192,7 +192,7 @@ llr_em = ll_e.return_result_alpha(al_max, name='Elliptical CL Max',
 llr_em.stall()
 display_markdown(llr_em)
 
-llr_tm = ll_t.return_result_alpha(al_max, name='TaperedSpan CL Max',
+llr_tm = ll_t.return_result_alpha(al_max, name='TaperedShape CL Max',
                                   vel=vel, rho=rho)
 llr_tm.stall()
 display_markdown(llr_tm)
