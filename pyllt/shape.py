@@ -441,8 +441,8 @@ class GeneralShape(Shape):
             result = 0.0
         else:
             result = zeros(s.shape)
-        for i, Ai in enumerate(self.An):
-            result += Ai*sin((i+1)*th)
+        for n, An in self.items():
+            result += An*sin(n*th)
         return result
 
     @property

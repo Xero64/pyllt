@@ -33,6 +33,9 @@ c_b_fn = BellShape(0.4)
 ll_e = LiftingLine('Elliptical', b, num, c_e_fn)
 display_markdown(ll_e)
 
+clmax_fn = ConstantShape(1.4)
+clmin_fn = ConstantShape(-1.4)
+
 ll_e.clmax_fn = clmax_fn
 ll_e.clmin_fn = clmin_fn
 
