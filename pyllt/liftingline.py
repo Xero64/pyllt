@@ -1,22 +1,18 @@
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Tuple
 
 from matplotlib.pyplot import figure
-from numpy import (absolute, asarray, cos, degrees, divide, full, linspace, pi,
-                   radians, sin, zeros)
+from numpy import (absolute, arccos, asarray, cos, degrees, divide, flip, full,
+                   hstack, linspace, pi, radians, sin, zeros)
 from numpy.linalg import norm, solve
 from py2md.classes import MDHeading, MDReport, MDTable
 
-from .shape import ConstantShape, GeneralShape, EllipticalShape
+from .shape import ConstantShape, EllipticalShape, GeneralShape
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
     from numpy import ndarray
 
     from .shape import Shape
-
-
-def CL_fn(ar: float , An: GeneralShape) -> float:
-    return pi*ar*An[0]
 
 
 class LiftingLineResult():
@@ -26,26 +22,27 @@ class LiftingLineResult():
     vel: float = None
     rho: float = None
     name: str = None
+    _num: int = None
     _al_rad: float = None
-    _al_fn: 'Shape' = None
+    _al_sh: 'Shape' = None
     _An: GeneralShape = None
     _n: 'ndarray' = None
     _q: float = None
-    _gamma_fn: 'Shape' = None
+    _gamma_sh: 'Shape' = None
     _gamma: 'ndarray' = None
-    _ali_fn: 'Shape' = None
+    _ali_sh: 'Shape' = None
     _ali: 'ndarray' = None
-    _wi_fn: 'Shape' = None
+    _wi_sh: 'Shape' = None
     _wi: 'ndarray' = None
-    _ale_fn: 'Shape' = None
+    _ale_sh: 'Shape' = None
     _ale: 'ndarray' = None
-    _l_fn: 'Shape' = None
+    _l_sh: 'Shape' = None
     _l: 'ndarray' = None
-    _cl_fn: 'Shape' = None
+    _cl_sh: 'Shape' = None
     _cl: 'ndarray' = None
-    _di_fn: 'Shape' = None
+    _di_sh: 'Shape' = None
     _di: 'ndarray' = None
-    _cdi_fn: 'Shape' = None
+    _cdi_sh: 'Shape' = None
     _cdi: float = None
     _CL: float = None
     _L: float = None
@@ -55,6 +52,7 @@ class LiftingLineResult():
     _e: float = None
     _dcl: 'ndarray' = None
     _norm_dcl: float = None
+    _s: 'ndarray' = None
     _th: 'ndarray' = None
     _cla: 'ndarray' = None
     _cos_n_th: Dict[int, 'ndarray'] = None
@@ -73,6 +71,7 @@ class LiftingLineResult():
         self.vel = kwargs.get('vel', 1.0)
         self.rho = kwargs.get('rho', 1.0)
         self.name = kwargs.get('name', self.liftingline.name)
+        self.num = kwargs.get('num', self.liftingline.num)
 
     def reset(self, excl: Iterable[str] = []) -> None:
         for attr in self.__dict__:
@@ -88,20 +87,75 @@ class LiftingLineResult():
     @al_rad.setter
     def al_rad(self, al_rad: float) -> None:
         self._al_rad = al_rad
+        self.reset()
 
     @property
-    def al_fn(self) -> 'Shape':
-        if self._al_fn is None:
-            self._al_fn = ConstantShape(self.al_rad)
-        return self._al_fn
+    def al_sh(self) -> 'Shape':
+        if self._al_sh is None:
+            self._al_sh = ConstantShape(self.al_rad)
+        return self._al_sh
 
     @property
+    def num(self) -> int:
+        if self._num is None:
+            self._num = self.liftingline.num // 2
+        return self._num
+
+    @num.setter
+    def num(self, num: int) -> None:
+        self._num = num
+        self.reset()
+
+    @property
+    def s(self) -> 'ndarray':
+        if self._s is None:
+            num = self.liftingline.num//2 + 1
+            th = linspace(pi/2, 0.0, num)
+            s = cos(th)
+            self._s = hstack((-flip(s), s))
+        return self._s
+
+    @property
+    def th(self) -> 'ndarray':
+        if self._th is None:
+            self._th = arccos(self.s)
+        return self._th
+
+    def cos_n_th(self, n: int) -> 'ndarray':
+        if self._cos_n_th is None:
+            self._cos_n_th = {}
+        if n not in self._cos_n_th:
+            self._cos_n_th[n] = cos(n*self.th)
+        return self._cos_n_th[n]
+
+    def sin_n_th(self, n: int) -> 'ndarray':
+        if self._sin_n_th is None:
+            self._sin_n_th = {}
+        if n not in self._sin_n_th:
+            self._sin_n_th[n] = sin(n*self.th)
+        return self._sin_n_th[n]
+
+    @property
+    def costh(self) -> 'ndarray':
+        return self.cos_n_th(1)
+
+    @property
+    def sinth(self) -> 'ndarray':
+        return self.sin_n_th(1)
+
+    @property
+    def y(self) -> 'ndarray':
+        if self._y is None:
+            self._y = self.liftingline.b/2*self.s
+        return self._y
+
+    @property # Needs rework
     def cla(self) -> 'ndarray':
         if self._cla is None:
-            self._cla = self.liftingline.cla_fn(self.liftingline.s)
+            self._cla = self.liftingline.cla_sh(self.liftingline.s)
         return self._cla
 
-    @cla.setter
+    @cla.setter # Needs rework
     def cla(self, cla: 'ndarray') -> None:
         if cla.size != self.liftingline.num:
             raise ValueError('cla is not correct size.')
@@ -140,111 +194,119 @@ class LiftingLineResult():
         self._q = q
 
     @property
-    def gamma_fn(self) -> 'Shape':
-        if self._gamma_fn is None:
-            self._gamma_fn = 2*self.liftingline.b*self.vel*self.An
-        return self._gamma_fn
+    def gamma_sh(self) -> 'Shape':
+        if self._gamma_sh is None:
+            self._gamma_sh = 2*self.liftingline.b*self.vel*self.An
+        return self._gamma_sh
 
     @property
     def gamma(self) -> 'ndarray':
         if self._gamma is None:
-            self._gamma = 2*self.vel*self.liftingline.b*self.An(self.liftingline.s)
+            # self._gamma = 2*self.vel*self.liftingline.b*self.An(self.liftingline.s)
+            self._gamma = self.gamma_sh(self.liftingline.s)
         return self._gamma
 
     @property
-    def ali_fn(self) -> 'Shape':
-        if self._ali_fn is None:
+    def ali_sh(self) -> 'Shape': # Needs its own shape
+        if self._ali_sh is None:
             nAn = self.An*self.n
-            self._ali_fn = nAn/EllipticalShape()
-        return self._ali_fn
+            self._ali_sh = nAn/EllipticalShape()
+        return self._ali_sh
 
     @property
     def ali(self) -> 'ndarray':
         if self._ali is None:
-            sinth = sin(self.liftingline.th)
-            nAn = self.An*self.n
-            self._ali = nAn(self.liftingline.s)/sinth
+            # sinth = sin(self.liftingline.th)
+            # nAn = self.An*self.n
+            # self._ali = nAn(self.liftingline.s)/sinth
+            self._ali = self.ali_sh(self.liftingline.s)
         return self._ali
 
     @property
-    def wi_fn(self) -> 'Shape':
-        if self._wi_fn is None:
-            self._wi_fn = self.vel*self.ali_fn
-        return self._wi_fn
+    def wi_sh(self) -> 'Shape':
+        if self._wi_sh is None:
+            self._wi_sh = self.vel*self.ali_sh
+        return self._wi_sh
 
     @property
     def wi(self) -> 'ndarray':
         if self._wi is None:
-            self._wi = self.vel*self.ali
+            # self._wi = self.vel*self.ali
+            self._wi = self.wi_sh(self.liftingline.s)
         return self._wi
 
     @property
-    def ale_fn(self) -> 'Shape':
-        if self._ale_fn is None:
-            al_rad_fn = ConstantShape(self.al_rad)
-            alg_fn = self.liftingline.alg_fn
-            al0_fn = self.liftingline.al0_fn
-            self._ale_fn = al_rad_fn + alg_fn - al0_fn - self.ali_fn
-        return self._ale_fn
+    def ale_sh(self) -> 'Shape':
+        if self._ale_sh is None:
+            al_rad_sh = ConstantShape(self.al_rad)
+            alg_sh = self.liftingline.alg_sh
+            al0_sh = self.liftingline.al0_sh
+            self._ale_sh = al_rad_sh + alg_sh - al0_sh - self.ali_sh
+        return self._ale_sh
 
     @property
     def ale(self) -> 'ndarray':
         if self._ale is None:
-            self._ale = self.al_rad + self.liftingline.alg - self.liftingline.al0 - self.ali
+            # self._ale = self.al_rad + self.liftingline.alg - self.liftingline.al0 - self.ali
+            self._ale = self.ale_sh(self.liftingline.s)
         return self._ale
 
     @property
-    def l_fn(self) -> 'Shape':
-        if self._l_fn is None:
-            self._l_fn = self.rho*self.vel*self.gamma_fn
-        return self._l_fn
+    def l_sh(self) -> 'Shape':
+        if self._l_sh is None:
+            self._l_sh = self.rho*self.vel*self.gamma_sh
+        return self._l_sh
 
     @property
     def l(self) -> 'ndarray':
         if self._l is None:
-            self._l = self.rho*self.vel*self.gamma
+            # self._l = self.rho*self.vel*self.gamma
+            self._l = self.l_sh(self.liftingline.s)
         return self._l
 
     @property
-    def cl_fn(self) -> 'Shape':
-        if self._cl_fn is None:
-            self._cl_fn = self.l_fn/self.liftingline.c_fn/self.q
-        return self._cl_fn
+    def cl_sh(self) -> 'Shape':
+        if self._cl_sh is None:
+            self._cl_sh = self.l_sh/self.liftingline.c_sh/self.q
+        return self._cl_sh
 
     @property
     def cl(self) -> float:
         if self._cl is None:
-            self._cl = self.l/self.liftingline.c/self.q
+            # self._cl = self.l/self.liftingline.c/self.q
+            self._cl = self.cl_sh(self.liftingline.s)
         return self._cl
 
     @property
-    def di_fn(self) -> 'Shape':
-        if self._di_fn is None:
-            self._di_fn = self.l_fn*self.ali_fn
-        return self._di_fn
+    def di_sh(self) -> 'Shape':
+        if self._di_sh is None:
+            self._di_sh = self.l_sh*self.ali_sh
+        return self._di_sh
 
     @property
     def di(self) -> 'ndarray':
         if self._di is None:
-            self._di = self.l*self.ali
+            # self._di = self.l*self.ali
+            self._di = self.di_sh(self.liftingline.s)
         return self._di
 
     @property
-    def cdi_fn(self) -> 'Shape':
-        if self._cdi_fn is None:
-            self._cdi_fn = self.di_fn/self.liftingline.c_fn/self.q
-        return self._cdi_fn
+    def cdi_sh(self) -> 'Shape':
+        if self._cdi_sh is None:
+            self._cdi_sh = self.di_sh/self.liftingline.c_sh/self.q
+        return self._cdi_sh
 
     @property
     def cdi(self) -> float:
         if self._cdi is None:
-            self._cdi = self.di/self.liftingline.c/self.q
+            # self._cdi = self.di/self.liftingline.c/self.q
+            self._cdi = self.cdi_sh(self.liftingline.s)
         return self._cdi
 
     @property
     def CL(self) -> float:
         if self._CL is None:
-            self._CL = CL_fn(self.liftingline.ar, self.An)
+            self._CL = pi*self.liftingline.ar*self.An[0]
         return self._CL
 
     @CL.setter
@@ -262,21 +324,12 @@ class LiftingLineResult():
         self._L = L
 
     @property
-    def CDi(self) -> float:
-        if self._CDi is None:
-            self._CDi = (pi*self.liftingline.ar*self.An**2*self.n).sum()
-        return self._CDi
-
-    @property
-    def Di(self) -> float:
-        if self._Di is None:
-            self._Di = self.q*self.liftingline.area*self.CDi
-        return self._Di
-
-    @property
     def delta(self) -> float:
         if self._delta is None:
-            self._delta = (self.An[1:]**2*self.n[1:]).sum()/self.An[0]**2
+            if self.CL == 0.0:
+                self._delta = 0.0
+            else:
+                self._delta = (self.An[1:]**2*self.n[1:]).sum()/self.An[0]**2
         return self._delta
 
     @property
@@ -284,6 +337,19 @@ class LiftingLineResult():
         if self._e is None:
             self._e = 1.0/(1.0 + self.delta)
         return self._e
+
+    @property
+    def CDi(self) -> float:
+        if self._CDi is None:
+            # self._CDi = (pi*self.liftingline.ar*self.An**2*self.n).sum()
+            self._CDi = self.CL**2/(pi*self.liftingline.ar*self.e)
+        return self._CDi
+
+    @property
+    def Di(self) -> float:
+        if self._Di is None:
+            self._Di = self.q*self.liftingline.area*self.CDi
+        return self._Di
 
     @property
     def dcl(self) -> 'ndarray':
@@ -302,88 +368,53 @@ class LiftingLineResult():
         return self._norm_dcl
 
     @property
-    def th(self) -> 'ndarray':
-        if self._th is None:
-            if self.liftingline.num % 2 == 0:
-                self._th = self.liftingline.th
-            else:
-                self._th = zeros(self.liftingline.num + 3)
-                ind = self.liftingline.num//2 + 1
-                self._th[0] = pi
-                self._th[1:ind+1] = self.liftingline.th[:ind]
-                self._th[ind+1:-1] = self.liftingline.th[ind-1:]
-        return self._th
-
-    def cos_n_th(self, n: int) -> 'ndarray':
-        if self._cos_n_th is None:
-            self._cos_n_th = {}
-        if n not in self._cos_n_th:
-            self._cos_n_th[n] = cos(n*self.th)
-        return self._cos_n_th[n]
-
-    def sin_n_th(self, n: int) -> 'ndarray':
-        if self._sin_n_th is None:
-            self._sin_n_th = {}
-        if n not in self._sin_n_th:
-            self._sin_n_th[n] = sin(n*self.th)
-        return self._sin_n_th[n]
-
-    @property
-    def costh(self) -> 'ndarray':
-        return self.cos_n_th(1)
-
-    @property
-    def sinth(self) -> 'ndarray':
-        return self.sin_n_th(1)
-
-    @property
-    def y(self) -> 'ndarray':
-        if self._y is None:
-            self._y = self.liftingline.b/2*self.costh
-        return self._y
-
-    @property
-    def s(self) -> 'ndarray':
-        return self.costh
-
-    @property
     def sf(self) -> 'ndarray':
         if self._sf is None:
-            sin_2_th = self.sin_n_th(2)
-            sfoqSar = self.An[0]*(sin_2_th/2 + pi - self.th)
-            for nm1 in range(1, self.An.size):
-                n = nm1 + 1
-                n2m1 = n**2 - 1
-                cos_n_th = self.cos_n_th(n)
-                sin_n_th = self.sin_n_th(n)
-                term = n*self.sinth*cos_n_th - sin_n_th*self.costh
-                sfoqSar += 2*self.An[nm1]/n2m1*term
-            self._sf = sfoqSar*self.liftingline.ar*self.q*self.liftingline.area
-            ind = self.liftingline.num//2 + 1
-            self._sf[ind+1:] -= self.L
+            sfoqSar = zeros(self.th.size)
+            for n, An in self.An.items():
+                if n == 1:
+                    sfoqSar += An*(self.sinth*self.costh + pi - self.th)
+                else:
+                    n2m1 = n**2 - 1
+                    cos_n_th = self.cos_n_th(n)
+                    sin_n_th = self.sin_n_th(n)
+                    term = n*self.sinth*cos_n_th - sin_n_th*self.costh
+                    sfoqSar += 2*An/n2m1*term
+            q = self.q
+            Sref = self.liftingline.area
+            ar = self.liftingline.ar
+            self._sf = sfoqSar*q*Sref*ar
+            self._sf[self.s > 0.0] -= self.L
         return self._sf
 
     @property
     def bm(self) -> 'ndarray':
         if self._bm is None:
+            bmoqSarb = zeros(self.th.size)
             pimth = pi - self.th
-            term = pimth*self.costh/2 + 3*self.sinth/8 + self.sin_n_th(3)/24
-            bmoqSarb = self.An[0]*term
-            term = pimth/4 - self.sin_n_th(2)/6 + self.sin_n_th(4)/48
-            bmoqSarb += self.An[1]*term
-            for nm1 in range(2, self.An.size):
-                n = nm1 + 1
-                nm2 = n - 2
-                np1 = n + 1
-                np2 = n + 2
-                term = self.sin_n_th(nm2)/nm2/nm1/4
-                term -= self.sin_n_th(n)/nm1/np1/2
-                term += self.sin_n_th(np2)/np2/np1/4
-                bmoqSarb += self.An[nm1]*term
-            qSarb = self.q*self.liftingline.area*self.liftingline.ar*self.liftingline.b
-            self._bm = bmoqSarb*qSarb
-            ind = self.liftingline.num//2 + 1
-            self._bm[ind+1:] -= self.L*self.y[ind+1:]
+            for n, An in self.An.items():
+                if n == 1:
+                    term = pimth*self.costh/2 + 3*self.sinth/8 + self.sin_n_th(3)/24
+                    bmoqSarb += An*term
+                elif n == 2:
+                    term = pimth/4 - self.sin_n_th(2)/6 + self.sin_n_th(4)/48
+                    bmoqSarb += An*term
+                else:
+                    nm1 = n - 1
+                    nm2 = n - 2
+                    np1 = n + 1
+                    np2 = n + 2
+                    term = self.sin_n_th(nm2)/nm2/nm1/4
+                    term -= self.sin_n_th(n)/nm1/np1/2
+                    term += self.sin_n_th(np2)/np2/np1/4
+                    bmoqSarb += An*term
+            q = self.q
+            Sref = self.liftingline.area
+            ar = self.liftingline.ar
+            b = self.liftingline.b
+            self._bm = bmoqSarb*q*Sref*ar*b
+            check = self.s > 0.0
+            self._bm[check] -= self.L*self.y[check]
         return self._bm
 
     @property
@@ -439,12 +470,12 @@ class LiftingLineResult():
 
     def set_lifting_line_twist(self) -> None:
         b = self.liftingline.b
-        c_fn = self.liftingline.c_fn
-        al0_fn = self.liftingline.al0_fn
-        ali_fn = GeneralShape(self.An.An*self.An.n)/GeneralShape([1.0])
-        temp = self.An/c_fn
-        alg_fn = temp*2*b/pi + al0_fn + ali_fn
-        self.liftingline.alg_fn = alg_fn
+        c_sh = self.liftingline.c_sh
+        al0_sh = self.liftingline.al0_sh
+        ali_sh = GeneralShape(self.An.An*self.An.n)/GeneralShape([1.0])
+        temp = self.An/c_sh
+        alg_sh = temp*2*b/pi + al0_sh + ali_sh
+        self.liftingline.alg_sh = alg_sh
         self.liftingline.reset(excl=['_area', '_ar', '_th', '_s', '_y', '_c', '_al0'])
 
     def plot_gamma(self, ax: 'Axes' = None) -> 'Axes':
@@ -566,6 +597,7 @@ class LiftingLineResult():
         table.add_column('Alpha (deg)', '.3f', data=[self.al_deg])
         table.add_column('V (m/s)', '.3f', data=[self.vel])
         table.add_column('&rho; (kg/m<sup>3</sup>)', '.3f', data=[self.rho])
+        table.add_column('q (Pa)', '.3f', data=[self.q])
         report.add_object(table)
         table = MDTable()
         table.add_column('Name', 's', data=[self.name])
@@ -675,12 +707,16 @@ class LiftingLinePolar():
 class LiftingLine():
 
     name: str = None
-    c_fn: 'Shape' = None
-    alg_fn: 'Shape' = None
-    al0_fn: 'Shape' = None
-    cla_fn: 'Shape' = None
     b: float = None
+    c_sh: 'Shape' = None
+    alg_sh: 'Shape' = None
+    al0_sh: 'Shape' = None
+    cla_sh: 'Shape' = None
     num: int = None
+    clmax_sh: 'Shape' = None
+    _clmax: 'ndarray' = None
+    clmin_sh: 'Shape' = None
+    _clmin: 'ndarray' = None
     _area: float = None
     _ar: float = None
     _th: 'ndarray' = None
@@ -695,21 +731,18 @@ class LiftingLine():
     _CLa: float = None
     _CL0: float = None
     _aL0: float = None
-    clmax_fn: 'Shape' = None
-    _clmax: 'ndarray' = None
-    clmin_fn: 'Shape' = None
-    _clmin: 'ndarray' = None
 
-    def __init__(self, name: str, b: float, num: int, c_fn: 'Shape',
-                 alg_fn: 'Shape' = ConstantShape(0.0),
-                 al0_fn: 'Shape' = ConstantShape(0.0),
-                 cla_fn: 'Shape' = ConstantShape(2*pi)) -> None:
+    def __init__(self, name: str, b: float, c_sh: 'Shape',
+                 alg_sh: 'Shape' = ConstantShape(0.0),
+                 al0_sh: 'Shape' = ConstantShape(0.0),
+                 cla_sh: 'Shape' = ConstantShape(2*pi),
+                 num: int = 101) -> None:
         self.name = name
-        self.c_fn = c_fn
-        self.alg_fn = alg_fn
-        self.al0_fn = al0_fn
-        self.cla_fn = cla_fn
         self.b = b
+        self.c_sh = c_sh
+        self.alg_sh = alg_sh
+        self.al0_sh = al0_sh
+        self.cla_sh = cla_sh
         self.num = num
 
     def reset(self, excl: Iterable[str] = []) -> None:
@@ -720,7 +753,7 @@ class LiftingLine():
     @property
     def area(self) -> float:
         if self._area is None:
-            self._area = self.c_fn.area*self.b/2
+            self._area = self.c_sh.area*self.b/2
         return self._area
 
     @area.setter
@@ -776,7 +809,7 @@ class LiftingLine():
     @property
     def c(self) -> 'ndarray':
         if self._c is None:
-            self._c = self.c_fn(self.s)
+            self._c = self.c_sh(self.s)
         return self._c
 
     @c.setter
@@ -788,7 +821,7 @@ class LiftingLine():
     @property
     def alg(self) -> 'ndarray':
         if self._alg is None:
-            self._alg = self.alg_fn(self.s)
+            self._alg = self.alg_sh(self.s)
         return self._alg
 
     @alg.setter
@@ -800,7 +833,7 @@ class LiftingLine():
     @property
     def al0(self) -> 'ndarray':
         if self._al0 is None:
-            self._al0 = self.al0_fn(self.s)
+            self._al0 = self.al0_sh(self.s)
         return self._al0
 
     @al0.setter
@@ -812,7 +845,7 @@ class LiftingLine():
     @property
     def cla(self) -> 'ndarray':
         if self._cla is None:
-            self._cla = self.cla_fn(self.s)
+            self._cla = self.cla_sh(self.s)
         return self._cla
 
     @cla.setter
@@ -823,10 +856,10 @@ class LiftingLine():
 
     @property
     def clmax(self) -> 'ndarray':
-        if self.clmax_fn is None:
+        if self.clmax_sh is None:
             self._clmax = full(self.num, float('inf'))
         else:
-            self._clmax = self.clmax_fn(self.s)
+            self._clmax = self.clmax_sh(self.s)
         return self._clmax
 
     @clmax.setter
@@ -837,10 +870,10 @@ class LiftingLine():
 
     @property
     def clmin(self) -> 'ndarray':
-        if self.clmin_fn is None:
+        if self.clmin_sh is None:
             self._clmin = full(self.num, -float('inf'))
         else:
-            self._clmin = self.clmin_fn(self.s)
+            self._clmin = self.clmin_sh(self.s)
         return self._clmin
 
     @clmin.setter
@@ -910,13 +943,13 @@ class LiftingLine():
     @property
     def CLa(self) -> float:
         if self._CLa is None:
-            self._CLa = CL_fn(self.ar, self.Ana)
+            self._CLa = pi*self.ar*self.Ana[0]
         return self._CLa
 
     @property
     def CL0(self) -> float:
         if self._CL0 is None:
-            self._CL0 = CL_fn(self.ar, self.An0)
+            self._CL0 = pi*self.ar*self.An0[0]
         return self._CL0
 
     @property
@@ -926,10 +959,10 @@ class LiftingLine():
         return self._aL0
 
     def copy(self, incl_attr: bool = False) -> 'LiftingLine':
-        ll = LiftingLine(self.name, self.c_fn, self.alg_fn, self.al0_fn,
-                         self.cla_fn, self.b, self.num)
-        ll.clmax_fn = self.clmax_fn
-        ll.clmin_fn = self.clmin_fn
+        ll = LiftingLine(self.name, self.c_sh, self.alg_sh, self.al0_sh,
+                         self.cla_sh, self.b, self.num)
+        ll.clmax_sh = self.clmax_sh
+        ll.clmin_sh = self.clmin_sh
         if incl_attr:
             for attr in self.__dict__:
                 ll.__dict__[attr] = self.__dict__[attr]

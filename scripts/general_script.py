@@ -11,55 +11,53 @@ rho = 1.225
 
 #%%
 # Lifting Line
-num = 101
-
 b = 4.8
 c_r = 0.9
 c_t = 0.6
 
 b_b = 1.2247*b
 
-cla_fn = ConstantShape(2*pi)
+cla_sh = ConstantShape(2*pi)
 
-clmax_fn = ConstantShape(1.4)
-clmin_fn = ConstantShape(-1.4)
+clmax_sh = ConstantShape(1.4)
+clmin_sh = ConstantShape(-1.4)
 
-c_e_fn = EllipticalShape(0.4)
-alg_fn_0 = ConstantShape(0.0)
-al0_fn_0 = ConstantShape(0.0)
+c_e_sh = EllipticalShape(0.4)
+alg_sh_0 = ConstantShape(0.0)
+al0_sh_0 = ConstantShape(0.0)
 
-c_b_fn = BellShape(0.4)
+c_b_sh = BellShape(0.4)
 
-ll_e = LiftingLine('Elliptical', b, num, c_e_fn)
+ll_e = LiftingLine('Elliptical', b, c_e_sh)
 display_markdown(ll_e)
 
-clmax_fn = ConstantShape(1.4)
-clmin_fn = ConstantShape(-1.4)
+clmax_sh = ConstantShape(1.4)
+clmin_sh = ConstantShape(-1.4)
 
-ll_e.clmax_fn = clmax_fn
-ll_e.clmin_fn = clmin_fn
+ll_e.clmax_sh = clmax_sh
+ll_e.clmin_sh = clmin_sh
 
 fac = ll_e.area/((c_r + c_t)/2*b)
 
 c_r = c_r*fac
 c_t = c_t*fac
 
-c_t_fn = TaperedShape(c_r, c_t)
-alg_fn = TaperedShape(radians(4.0), radians(2.0))
-al0_fn = TaperedShape(radians(-2.0), radians(0.0))
+c_t_sh = TaperedShape(c_r, c_t)
+alg_sh = TaperedShape(radians(4.0), radians(2.0))
+al0_sh = TaperedShape(radians(-2.0), radians(0.0))
 
-ll_t = LiftingLine('Tapered', b, num, c_t_fn, alg_fn, al0_fn)
+ll_t = LiftingLine('Tapered', b, c_t_sh, alg_sh, al0_sh)
 display_markdown(ll_t)
 
-ll_t.clmax_fn = clmax_fn
-ll_t.clmin_fn = clmin_fn
+ll_t.clmax_sh = clmax_sh
+ll_t.clmin_sh = clmin_sh
 
-c_c_fn = c_e_fn.to_constant()
+c_c_sh = c_e_sh.to_constant()
 
-ll_c = LiftingLine('Constant', b, num, c_c_fn, alg_fn, al0_fn, cla_fn)
+ll_c = LiftingLine('Constant', b, c_c_sh, alg_sh, al0_sh, cla_sh)
 display_markdown(ll_c)
 
-ll_b = LiftingLine('Bell', b_b, num, c_b_fn)
+ll_b = LiftingLine('Bell', b_b, c_b_sh)
 display_markdown(ll_b)
 
 print(f'll_b.b/ll_e.b = {ll_b.b/ll_e.b:6f}')
