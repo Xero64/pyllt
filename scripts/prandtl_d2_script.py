@@ -15,9 +15,9 @@ W = m*9.0665 # N
 vel = 12.3 # m/s
 rho = 1.225 # kg/m^3
 
-c_sh = TaperedShape(c_r, c_t)
+c_shp = TaperedShape(c_r, c_t)
 
-ll_p = LiftingLine('Prandtl D2', b, c_sh)
+ll_p = LiftingLine('Prandtl D2', b, c_shp)
 display_markdown(ll_p)
 
 llr_p = ll_p.return_result_L(W, vel=vel, rho=rho)
@@ -60,71 +60,71 @@ ax_gamma = None
 ax_gamma = llr_p.plot_gamma(ax_gamma)
 _ = ax_gamma.legend()
 
-print(f'norm(gamma_sh - gamma) = {norm(llr_p.gamma_sh(ll_p.s) - llr_p.gamma)}')
+print(f'norm(gamma_shp - gamma) = {norm(llr_p.gamma_shp(ll_p.s) - llr_p.gamma)}')
 
 ax_l = None
 ax_l = llr_p.plot_l(ax_l)
 _ = ax_l.legend()
 
-print(f'norm(l_sh - l) = {norm(llr_p.l_sh(ll_p.s) - llr_p.l)}')
+print(f'norm(l_shp - l) = {norm(llr_p.l_shp(ll_p.s) - llr_p.l)}')
 
 ax_cl = None
 ax_cl = llr_p.plot_cl(ax_cl)
 _ = ax_cl.legend()
 
-print(f'norm(cl_sh - cl) = {norm(llr_p.cl_sh(ll_p.s) - llr_p.cl)}')
+print(f'norm(cl_shp - cl) = {norm(llr_p.cl_shp(ll_p.s) - llr_p.cl)}')
 
 ax_ali = None
 ax_ali = llr_p.plot_ali(ax_ali)
 _ = ax_ali.legend()
 
-print(f'norm(ali_sh - ali) = {norm(llr_p.ali_sh(ll_p.s) - llr_p.ali)}')
+print(f'norm(ali_shp - ali) = {norm(llr_p.ali_shp(ll_p.s) - llr_p.ali)}')
 
 ax_ale = None
 ax_ale = llr_p.plot_ale(ax_ale)
 _ = ax_ale.legend()
 
-print(f'norm(ale_sh - ale) = {norm(llr_p.ale_sh(ll_p.s) - llr_p.ale)}')
+print(f'norm(ale_shp - ale) = {norm(llr_p.ale_shp(ll_p.s) - llr_p.ale)}')
 
 ax_wi = None
 ax_wi = llr_p.plot_wi(ax_wi)
 _ = ax_wi.legend()
 
-print(f'norm(wi_sh - wi) = {norm(llr_p.wi_sh(ll_p.s) - llr_p.wi)}')
+print(f'norm(wi_shp - wi) = {norm(llr_p.wi_shp(ll_p.s) - llr_p.wi)}')
 
 ax_di = None
 ax_di = llr_p.plot_di(ax_di)
 _ = ax_di.legend()
 
-print(f'norm(di_sh - di) = {norm(llr_p.di_sh(ll_p.s) - llr_p.di)}')
+print(f'norm(di_shp - di) = {norm(llr_p.di_shp(ll_p.s) - llr_p.di)}')
 
 ax_cdi = None
 ax_cdi = llr_p.plot_cdi(ax_cdi)
 _ = ax_cdi.legend()
 
-print(f'norm(cdi_sh - cdi) = {norm(llr_p.cdi_sh(ll_p.s) - llr_p.cdi)}')
+print(f'norm(cdi_shp - cdi) = {norm(llr_p.cdi_shp(ll_p.s) - llr_p.cdi)}')
 
 ax_sf = None
 ax_sf = llr_p.plot_sf(ax_sf)
 _ = ax_sf.legend()
 
-# print(f'norm(sf_sh - sf) = {norm(llr_p.sf_sh(ll_p.s) - llr_p.sf)}')
+# print(f'norm(sf_shp - sf) = {norm(llr_p.sf_shp(ll_p.s) - llr_p.sf)}')
 
 ax_bm = None
 ax_bm = llr_p.plot_bm(ax_bm)
 _ = ax_bm.legend()
 
-# print(f'norm(bm_sh - bm) = {norm(llr_p.bm_sh(ll_p.s) - llr_p.bm)}')
+# print(f'norm(bm_shp - bm) = {norm(llr_p.bm_shp(ll_p.s) - llr_p.bm)}')
 
 #%%
 # Stall Conditions
 al_max = 8.0
 
-clmax_sh = ConstantShape(1.4)
-clmin_sh = ConstantShape(-1.4)
+clmax_shp = ConstantShape(1.4)
+clmin_shp = ConstantShape(-1.4)
 
-ll_p.clmax_sh = clmax_sh
-ll_p.clmin_sh = clmin_sh
+ll_p.clmax_shp = clmax_shp
+ll_p.clmin_shp = clmin_shp
 
 llr_pm = ll_p.return_result_alpha(al_max, name='Prandtl D2 CL Max',
                                   vel=vel, rho=rho)
