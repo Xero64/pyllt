@@ -228,8 +228,8 @@ class DivShape(Shape):
         result = zeros(s.shape)
         arg1 = self.arg1(s)
         arg2 = self.arg2(s)
-        arg1_not_zero = arg1 != 0.0
-        arg2_not_zero = arg2 != 0.0
+        arg1_not_zero = absolute(arg1) > 1e-12
+        arg2_not_zero = absolute(arg2) > 1e-12
         check = logical_and(arg1_not_zero, arg2_not_zero)
         divide(arg1, arg2, out=result, where=check)
         return result

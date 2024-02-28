@@ -203,7 +203,7 @@ class LiftingLineResult():
     def gamma(self) -> 'ndarray':
         if self._gamma is None:
             # self._gamma = 2*self.vel*self.liftingline.b*self.An(self.liftingline.s)
-            self._gamma = self.gamma_shp(self.liftingline.s)
+            self._gamma = self.gamma_shp(self.s)
         return self._gamma
 
     @property
@@ -219,7 +219,7 @@ class LiftingLineResult():
             # sinth = sin(self.liftingline.th)
             # nAn = self.An*self.n
             # self._ali = nAn(self.liftingline.s)/sinth
-            self._ali = self.ali_shp(self.liftingline.s)
+            self._ali = self.ali_shp(self.s)
         return self._ali
 
     @property
@@ -232,7 +232,7 @@ class LiftingLineResult():
     def wi(self) -> 'ndarray':
         if self._wi is None:
             # self._wi = self.vel*self.ali
-            self._wi = self.wi_shp(self.liftingline.s)
+            self._wi = self.wi_shp(self.s)
         return self._wi
 
     @property
@@ -248,7 +248,7 @@ class LiftingLineResult():
     def ale(self) -> 'ndarray':
         if self._ale is None:
             # self._ale = self.al_rad + self.liftingline.alg - self.liftingline.al0 - self.ali
-            self._ale = self.ale_shp(self.liftingline.s)
+            self._ale = self.ale_shp(self.s)
         return self._ale
 
     @property
@@ -261,7 +261,7 @@ class LiftingLineResult():
     def l(self) -> 'ndarray':
         if self._l is None:
             # self._l = self.rho*self.vel*self.gamma
-            self._l = self.l_shp(self.liftingline.s)
+            self._l = self.l_shp(self.s)
         return self._l
 
     @property
@@ -274,7 +274,7 @@ class LiftingLineResult():
     def cl(self) -> float:
         if self._cl is None:
             # self._cl = self.l/self.liftingline.c/self.q
-            self._cl = self.cl_shp(self.liftingline.s)
+            self._cl = self.cl_shp(self.s)
         return self._cl
 
     @property
@@ -287,7 +287,7 @@ class LiftingLineResult():
     def di(self) -> 'ndarray':
         if self._di is None:
             # self._di = self.l*self.ali
-            self._di = self.di_shp(self.liftingline.s)
+            self._di = self.di_shp(self.s)
         return self._di
 
     @property
@@ -300,7 +300,7 @@ class LiftingLineResult():
     def cdi(self) -> float:
         if self._cdi is None:
             # self._cdi = self.di/self.liftingline.c/self.q
-            self._cdi = self.cdi_shp(self.liftingline.s)
+            self._cdi = self.cdi_shp(self.s)
         return self._cdi
 
     @property
@@ -502,7 +502,7 @@ class LiftingLineResult():
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Circulation Distribution - $\Gamma$ (m/s)')
-        ax.plot(self.liftingline.y, self.gamma, label=self.name)
+        ax.plot(self.y, self.gamma, label=self.name)
         return ax
 
     def plot_ali(self, ax: 'Axes' = None) -> 'Axes':
@@ -512,7 +512,7 @@ class LiftingLineResult():
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Induced Angle Distribution - $\alpha_i$ (deg)')
-        ax.plot(self.liftingline.y, degrees(self.ali), label=self.name)
+        ax.plot(self.y, degrees(self.ali), label=self.name)
         return ax
 
     def plot_wi(self, ax: 'Axes' = None) -> 'Axes':
@@ -522,7 +522,7 @@ class LiftingLineResult():
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Induced Wash Distribution $w_i$ (m/s)')
-        ax.plot(self.liftingline.y, self.wi, label=self.name)
+        ax.plot(self.y, self.wi, label=self.name)
         return ax
 
     def plot_ale(self, ax: 'Axes' = None) -> 'Axes':
@@ -532,7 +532,7 @@ class LiftingLineResult():
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Effective Angle Distribution $\alpha_{eff}$ (deg)')
-        ax.plot(self.liftingline.y, degrees(self.ale), label=self.name)
+        ax.plot(self.y, degrees(self.ale), label=self.name)
         return ax
 
     def plot_cla(self, ax: 'Axes' = None) -> 'Axes':
@@ -552,7 +552,7 @@ class LiftingLineResult():
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Lift Distribution - l (N/m)')
-        ax.plot(self.liftingline.y, self.l, label=self.name)
+        ax.plot(self.y, self.l, label=self.name)
         return ax
 
     def plot_cl(self, ax: 'Axes' = None) -> 'Axes':
@@ -562,7 +562,7 @@ class LiftingLineResult():
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Lift Coefficient Distribution - $c_l$')
-        ax.plot(self.liftingline.y, self.cl, label=self.name)
+        ax.plot(self.y, self.cl, label=self.name)
         return ax
 
     def plot_di(self, ax: 'Axes' = None) -> 'Axes':
@@ -572,7 +572,7 @@ class LiftingLineResult():
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Induced Drag Distribution - $d_i$ (N/m)')
-        ax.plot(self.liftingline.y, self.di, label=self.name)
+        ax.plot(self.y, self.di, label=self.name)
         return ax
 
     def plot_cdi(self, ax: 'Axes' = None) -> 'Axes':
@@ -582,7 +582,7 @@ class LiftingLineResult():
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Induced Drag Coefficient - $c_{di}$')
-        ax.plot(self.liftingline.y, self.cdi, label=self.name)
+        ax.plot(self.y, self.cdi, label=self.name)
         return ax
 
     def plot_sf(self, ax: 'Axes' = None) -> 'Axes':
