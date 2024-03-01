@@ -145,3 +145,8 @@ for n, An in Adct.items():
     dCDidAn = CDi.diff(An)
     dCDidA[n] = dCDidAn
     print(f'dCDi/dA{n:d} = {dCDidAn}\n')
+
+#%%
+# Distribution Derivative w.r.t. theta
+dGammadth = Gamma.diff(th)
+print(f'dGammadth = {dGammadth}\n')

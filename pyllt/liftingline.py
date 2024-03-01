@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Tuple
 
 from matplotlib.pyplot import figure
 from numpy import (absolute, arccos, asarray, cos, degrees, divide, flip, full,
-                   hstack, linspace, logical_and, pi, radians, sin, zeros)
+                   hstack, linspace, pi, radians, sin, zeros)
 from numpy.linalg import norm, solve
 from py2md.classes import MDHeading, MDReport, MDTable
 

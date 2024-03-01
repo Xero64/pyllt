@@ -26,7 +26,7 @@ c_e_shp = EllipticalShape(0.4)
 alg_shp_0 = ConstantShape(0.0)
 al0_shp_0 = ConstantShape(0.0)
 
-c_b_shp = BellShape(0.4)
+c_b_shp = EllipticalShape(0.4)
 
 ll_e = LiftingLine('Elliptical', b, c_e_shp)
 display_markdown(ll_e)
@@ -58,6 +58,9 @@ ll_c = LiftingLine('Constant', b, c_c_shp, alg_shp, al0_shp, cla_shp)
 display_markdown(ll_c)
 
 ll_b = LiftingLine('Bell', b_b, c_b_shp)
+llr_b = ll_b.return_result_L(200.0, vel=vel, rho=rho)
+llr_b.set_lift_distribution(200.0, BellShape())
+llr_b.set_lifting_line_twist()
 display_markdown(ll_b)
 
 print(f'll_b.b/ll_e.b = {ll_b.b/ll_e.b:6f}')
@@ -68,8 +71,6 @@ print(f'll_b.area/ll_e.area = {ll_b.area/ll_e.area:6f}')
 llr_e = ll_e.return_result_L(200.0, vel=vel, rho=rho)
 display_markdown(llr_e)
 
-llr_b = ll_b.return_result_L(200.0, vel=vel, rho=rho)
-llr_b.set_lift_distribution(200.0, BellShape())
 display_markdown(llr_b)
 
 print(f'llr_b.L/llr_e.L = {llr_b.L/llr_e.L:6f}')

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Union
 
 from matplotlib.pyplot import figure
 from numpy import (absolute, arccos, asarray, cos, divide, full, linspace,
-                   logical_and, ndarray, pi, sin, zeros)
+                   logical_and, logical_not, ndarray, pi, sin, zeros)
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -226,12 +226,26 @@ class DivShape(Shape):
 
     def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
         result = zeros(s.shape)
-        arg1 = self.arg1(s)
-        arg2 = self.arg2(s)
-        arg1_not_zero = absolute(arg1) > 1e-12
-        arg2_not_zero = absolute(arg2) > 1e-12
-        check = logical_and(arg1_not_zero, arg2_not_zero)
-        divide(arg1, arg2, out=result, where=check)
+        res1 = self.arg1(s)
+        res2 = self.arg2(s)
+        res1_eql0 = absolute(res1) < 1e-12
+        res2_eql0 = absolute(res2) < 1e-12
+        both_eql0 = logical_and(res1_eql0, res2_eql0)
+        both_not0 = logical_not(both_eql0)
+        divide(res1, res2, out=result, where=both_not0)
+        if isinstance(res2_eql0, bool):
+            anycheck = res2_eql0
+        else:
+            res2_eql0 = asarray(res2_eql0)
+            anycheck = res2_eql0.any()
+        if anycheck:
+            if isinstance(self.arg1, GeneralShape) and isinstance(self.arg2, GeneralShape):
+                lhopital = zeros(s.shape)
+                der1 = self.arg1.derivative(s)
+                der2 = self.arg2.derivative(s)
+                check_der = logical_and(der1 != 0.0, der2 != 0.0)
+                divide(der1, der2, out=lhopital, where=check_der)
+                result[both_eql0] = lhopital[both_eql0]
         return result
 
     def __mul__(self, other: Union[float, int]) -> Union['MulShape', 'DivShape']:
@@ -442,7 +456,19 @@ class GeneralShape(Shape):
         else:
             result = zeros(s.shape)
         for n, An in self.items():
-            result += An*sin(n*th)
+            if An != 0.0:
+                result += An*sin(n*th)
+        return result
+
+    def derivative(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
+        th = arccos(s)
+        if isinstance(s, float):
+            result = 0.0
+        else:
+            result = zeros(s.shape)
+        for n, An in self.items():
+            if An != 0.0:
+                result += n*An*cos(n*th)
         return result
 
     @property

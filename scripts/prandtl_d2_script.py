@@ -60,61 +60,41 @@ ax_gamma = None
 ax_gamma = llr_p.plot_gamma(ax_gamma)
 _ = ax_gamma.legend()
 
-print(f'norm(gamma_shp - gamma) = {norm(llr_p.gamma_shp(ll_p.s) - llr_p.gamma)}')
-
 ax_l = None
 ax_l = llr_p.plot_l(ax_l)
 _ = ax_l.legend()
-
-print(f'norm(l_shp - l) = {norm(llr_p.l_shp(ll_p.s) - llr_p.l)}')
 
 ax_cl = None
 ax_cl = llr_p.plot_cl(ax_cl)
 _ = ax_cl.legend()
 
-print(f'norm(cl_shp - cl) = {norm(llr_p.cl_shp(ll_p.s) - llr_p.cl)}')
-
 ax_ali = None
 ax_ali = llr_p.plot_ali(ax_ali)
 _ = ax_ali.legend()
-
-print(f'norm(ali_shp - ali) = {norm(llr_p.ali_shp(ll_p.s) - llr_p.ali)}')
 
 ax_ale = None
 ax_ale = llr_p.plot_ale(ax_ale)
 _ = ax_ale.legend()
 
-print(f'norm(ale_shp - ale) = {norm(llr_p.ale_shp(ll_p.s) - llr_p.ale)}')
-
 ax_wi = None
 ax_wi = llr_p.plot_wi(ax_wi)
 _ = ax_wi.legend()
-
-print(f'norm(wi_shp - wi) = {norm(llr_p.wi_shp(ll_p.s) - llr_p.wi)}')
 
 ax_di = None
 ax_di = llr_p.plot_di(ax_di)
 _ = ax_di.legend()
 
-print(f'norm(di_shp - di) = {norm(llr_p.di_shp(ll_p.s) - llr_p.di)}')
-
 ax_cdi = None
 ax_cdi = llr_p.plot_cdi(ax_cdi)
 _ = ax_cdi.legend()
-
-print(f'norm(cdi_shp - cdi) = {norm(llr_p.cdi_shp(ll_p.s) - llr_p.cdi)}')
 
 ax_sf = None
 ax_sf = llr_p.plot_sf(ax_sf)
 _ = ax_sf.legend()
 
-# print(f'norm(sf_shp - sf) = {norm(llr_p.sf_shp(ll_p.s) - llr_p.sf)}')
-
 ax_bm = None
 ax_bm = llr_p.plot_bm(ax_bm)
 _ = ax_bm.legend()
-
-# print(f'norm(bm_shp - bm) = {norm(llr_p.bm_shp(ll_p.s) - llr_p.bm)}')
 
 #%%
 # Stall Conditions
