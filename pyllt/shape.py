@@ -624,3 +624,65 @@ class BellShape(GeneralShape):
 
     def __str__(self) -> str:
         return f'BellShape({self.An})'
+
+
+class InducedAngleShape(GeneralShape):
+
+    def __init__(self, An: Union[GeneralShape, 'ndarray']) -> None:
+        if isinstance(An, GeneralShape):
+            An = An.An
+        super().__init__(An)
+
+    def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
+        th = arccos(s)
+        if isinstance(s, float):
+            result = 0.0
+        else:
+            result = zeros(s.shape)
+        sinth = sin(th)
+        sinth_not0 = absolute(sinth) > 1e-12
+        sinth_eql0 = logical_not(sinth_not0)
+        if isinstance(sinth_eql0, bool):
+            anycheck = sinth_eql0
+        else:
+            sinth_eql0 = asarray(sinth_eql0)
+            anycheck = sinth_eql0.any()
+        if anycheck:
+            costh = cos(th)
+            costh_not0 = absolute(costh) > 1e-12
+        for n, An in self.items():
+            if n == 1:
+                result += An
+            else:
+                if An != 0.0:
+                    temp1 = zeros(s.shape)
+                    divide(n*sin(n*th), sinth, out=temp1, where=sinth_not0)
+                    if anycheck:
+                        temp2 = zeros(s.shape)
+                        divide(n**2*cos(n*th), costh, out=temp2, where=costh_not0)
+                        temp1[sinth_eql0] = temp2[sinth_eql0]
+                    result += An*temp1
+        return result
+
+    def derivative(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
+        th = arccos(s)
+        if isinstance(s, float):
+            result = 0.0
+        else:
+            result = zeros(s.shape)
+        sinth = sin(th)
+        sinth2 = sinth**2
+        costh = cos(th)
+        check = absolute(sinth) > 1e-12
+        for n, An in self.items():
+            if n > 1:
+                if An != 0.0:
+                    temp1 = zeros(s.shape)
+                    divide(n**2*cos(n*th), sinth, out=temp1, where=check)
+                    temp2 = zeros(s.shape)
+                    divide(n*sin(n*th)*costh, sinth2, out=temp2, where=check)
+                    result += An*(temp1 - temp2)
+        return result
+
+    def __str__(self) -> str:
+        return f'InducedAngleShape({self.An})'

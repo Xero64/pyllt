@@ -138,6 +138,14 @@ for n, An in Adct.items():
     print(f'Cdi_A{n} = {Cdin}\n')
 
 #%%
+# Distribution Derivative w.r.t. theta
+dGammadth = Gamma.diff(th)
+print(f'dGammadth = {dGammadth}\n')
+
+dalidth = ali.diff(th)
+print(f'dalidth = {dalidth}\n')
+
+#%%
 # Drag Optimisation
 dCDidA = {}
 
@@ -145,8 +153,3 @@ for n, An in Adct.items():
     dCDidAn = CDi.diff(An)
     dCDidA[n] = dCDidAn
     print(f'dCDi/dA{n:d} = {dCDidAn}\n')
-
-#%%
-# Distribution Derivative w.r.t. theta
-dGammadth = Gamma.diff(th)
-print(f'dGammadth = {dGammadth}\n')
