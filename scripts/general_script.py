@@ -11,6 +11,7 @@ rho = 1.225
 
 #%%
 # Lifting Line
+cd0 = 0.02
 b = 4.8
 c_r = 0.9
 c_t = 0.6
@@ -28,7 +29,7 @@ al0_shp_0 = ConstantShape(0.0)
 
 c_b_shp = EllipticalShape(0.4)
 
-ll_e = LiftingLine('Elliptical', b, c_e_shp)
+ll_e = LiftingLine('Elliptical', b, c_e_shp, cd0=cd0)
 display_markdown(ll_e)
 
 clmax_shp = ConstantShape(1.4)
@@ -46,7 +47,7 @@ c_t_shp = TaperedShape(c_r, c_t)
 alg_shp = TaperedShape(radians(4.0), radians(2.0))
 al0_shp = TaperedShape(radians(-2.0), radians(0.0))
 
-ll_t = LiftingLine('Tapered', b, c_t_shp, alg_shp, al0_shp)
+ll_t = LiftingLine('Tapered', b, c_t_shp, alg_shp, al0_shp, cd0=cd0)
 display_markdown(ll_t)
 
 ll_t.clmax_shp = clmax_shp
@@ -54,10 +55,10 @@ ll_t.clmin_shp = clmin_shp
 
 c_c_shp = c_e_shp.to_constant()
 
-ll_c = LiftingLine('Constant', b, c_c_shp, alg_shp, al0_shp, cla_shp)
+ll_c = LiftingLine('Constant', b, c_c_shp, alg_shp, al0_shp, cd0=cd0)
 display_markdown(ll_c)
 
-ll_b = LiftingLine('Bell', b_b, c_b_shp)
+ll_b = LiftingLine('Bell', b_b, c_b_shp, cd0=cd0)
 llr_b = ll_b.return_result_L(200.0, vel=vel, rho=rho)
 llr_b.set_lift_distribution(200.0, BellShape())
 llr_b.set_lifting_line_twist()

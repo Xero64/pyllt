@@ -54,6 +54,8 @@ class LiftingLineResult():
     _CL: float = None
     _L: float = None
     _CDi: float = None
+    _CD0: float = None
+    _CD: float = None
     _Di: float = None
     _D0: float = None
     _D: float = None
@@ -63,7 +65,9 @@ class LiftingLineResult():
     _norm_dcl: float = None
     _sf: 'ndarray' = None
     _bm: 'ndarray' = None
-    _BM_root: float = None
+    _bmr: float = None
+    _pwr: float = None
+    _LoD: float = None
 
     def __init__(self, liftingline: 'LiftingLine',
                  al_deg: float, **kwargs: Dict[str, Any]) -> None:
@@ -387,17 +391,59 @@ class LiftingLineResult():
         return self._CDi
 
     @property
+    def CD0(self) -> float:
+        if self._CD0 is None:
+            self._CD0 = self.liftingline.cd0
+        return self._CD0
+
+    @property
+    def CD(self) -> float:
+        if self._CD is None:
+            self._CD = self.CD0 + self.CDi
+        return self._CD
+
+    @property
     def Di(self) -> float:
         if self._Di is None:
             self._Di = self.q*self.liftingline.area*self.CDi
         return self._Di
 
     @property
-    def BM_root(self) -> float:
-        if self._BM_root is None:
+    def D0(self) -> float:
+        if self._D0 is None:
+            self._D0 = self.q*self.liftingline.area*self.CD0
+        return self._D0
+
+    @property
+    def D(self) -> float:
+        if self._D is None:
+            self._D = self.D0 + self.Di
+        return self._D
+
+    @property
+    def LoD(self) -> float:
+        if self._LoD is None:
+            if self.D != 0.0:
+                self._LoD = self.L/self.D
+            else:
+                if self.L == 0.0:
+                    self._LoD = 0.0
+                else:
+                    self._LoD = float('inf')
+        return self._LoD
+
+    @property
+    def pwr(self) -> float:
+        if self._pwr is None:
+            self._pwr = self.vel*self.D
+        return self._pwr
+
+    @property
+    def bmr(self) -> float:
+        if self._bmr is None:
             ind = self.liftingline.num//2 + 1
-            self._BM_root = self.bm[ind]
-        return self._BM_root
+            self._bmr = self.bm[ind]
+        return self._bmr
 
     def stall(self, norm_tol: float = 1e-6, ale_tol: float = 1e-6,
               num_iter: int = 100, display: bool = False) -> 'LiftingLineResult':
@@ -609,16 +655,25 @@ class LiftingLineResult():
         report.add_object(table)
         table = MDTable()
         table.add_column('Name', 's', data=[self.name])
-        table.add_column('CL', '.6f', data=[self.CL])
-        table.add_column('CDi', '.6f', data=[self.CDi])
+        table.add_column('C<sub>L</sub>', '.6f', data=[self.CL])
+        table.add_column('C<sub>Di</sub>', '.6f', data=[self.CDi])
+        table.add_column('C<sub>D0</sub>', '.6f', data=[self.CD0])
+        table.add_column('C<sub>D</sub>', '.6f', data=[self.CD])
         table.add_column('&delta;', '.6f', data=[self.delta])
         table.add_column('e', '.6f', data=[self.e])
         report.add_object(table)
         table = MDTable()
         table.add_column('Name', 's', data=[self.name])
         table.add_column('L (N)', '.6f', data=[self.L])
-        table.add_column('Di (N)', '.6f', data=[self.Di])
-        table.add_column('BM Root (N.m)', '.6f', data=[self.BM_root])
+        table.add_column('D<sub>i</sub> (N)', '.6f', data=[self.Di])
+        table.add_column('D<sub>0</sub> (N)', '.6f', data=[self.D0])
+        table.add_column('D (N)', '.6f', data=[self.D])
+        report.add_object(table)
+        table = MDTable()
+        table.add_column('Name', 's', data=[self.name])
+        table.add_column('BM Root (N.m)', '.6f', data=[self.bmr])
+        table.add_column('Power (W)', '.3f', data=[self.pwr])
+        table.add_column('Lift to Drag Ratio', '.3f', data=[self.LoD])
         report.add_object(table)
         return report
 
@@ -712,6 +767,120 @@ class LiftingLinePolar():
         return ax
 
 
+class LiftingLineLevelFlight():
+    name: str = None
+    lift: float = None
+    rho: float = None
+    vels: 'ndarray' = None
+    liftingline: 'LiftingLine' = None
+    _results: Dict[float, LiftingLineResult] = None
+    _CL: 'ndarray' = None
+    _CD: 'ndarray' = None
+    _LoD: 'ndarray' = None
+    _pwr: 'ndarray' = None
+
+    def __init__(self, liftingline: 'LiftingLine', lift: float, rho: float,
+                 vels: 'ndarray', **kwargs: Dict[str, Any]) -> None:
+
+        self.liftingline = liftingline
+        self.lift = lift
+        self.rho = rho
+        self.vels = vels
+
+        self.name = kwargs.get('name', self.liftingline.name)
+
+    def reset(self, excl: Iterable[str] = []) -> None:
+        for attr in self.__dict__:
+            if attr.startswith('_') and attr not in excl:
+                self.__dict__[attr] = None
+
+    @property
+    def results(self) -> Dict[float, LiftingLineResult]:
+        if self._results is None:
+            self._results = {}
+            for vel in self.vels:
+                name = f'{self.name:s} {vel:.3f}'
+                result = self.liftingline.return_result_L(self.lift, vel=vel,
+                                                          rho=self.rho, name=name)
+                self._results[vel] = result
+        return self._results
+
+    @property
+    def CL(self) -> 'ndarray':
+        if self._CL is None:
+            self._CL = asarray([result.CL for result in self.results.values()])
+        return self._CL
+
+    @property
+    def CD(self) -> 'ndarray':
+        if self._CD is None:
+            self._CD = asarray([result.CD for result in self.results.values()])
+        return self._CD
+
+    @property
+    def LoD(self) -> 'ndarray':
+        if self._LoD is None:
+            self._LoD = asarray([result.LoD for result in self.results.values()])
+        return self._LoD
+
+    @property
+    def pwr(self) -> 'ndarray':
+        if self._pwr is None:
+            self._pwr = asarray([result.pwr for result in self.results.values()])
+        return self._pwr
+
+    def stall(self, norm_tol: float = 1e-6, ale_tol: float = 1e-6,
+              num_iter: int = 100, display: bool = False) -> 'LiftingLinePolar':
+
+        for vel, result in self.results.items():
+            result.stall(norm_tol, ale_tol, num_iter, display)
+            self._results[vel] = result
+
+        self.reset(excl=['_results'])
+
+        return self
+
+    def plot_LoD(self, ax: 'Axes' = None) -> 'Axes':
+        if ax is None:
+            fig = figure()
+            ax = fig.gca()
+            ax.grid(True)
+            ax.set_xlabel(r'Velocity - V (m/s)')
+            ax.set_ylabel(r'Lift to Drag Ratio - $\frac{L}{D}$')
+        ax.plot(self.vels, self.LoD, label=self.name)
+        return ax
+
+    def plot_pwr(self, ax: 'Axes' = None) -> 'Axes':
+        if ax is None:
+            fig = figure()
+            ax = fig.gca()
+            ax.grid(True)
+            ax.set_xlabel(r'Velocity - V (m/s)')
+            ax.set_ylabel(r'Power - P (W)')
+        ax.plot(self.vels, self.pwr, label=self.name)
+        return ax
+
+    def plot_CL(self, ax: 'Axes' = None) -> 'Axes':
+        if ax is None:
+            fig = figure()
+            ax = fig.gca()
+            ax.grid(True)
+            ax.set_xlabel(r'Velocity - V (m/s)')
+            ax.set_ylabel(r'Lift Coefficient - $C_L$')
+        ax.plot(self.vels, self.CL, label=self.name)
+        return ax
+
+    def plot_CD(self, ax: 'Axes' = None) -> 'Axes':
+        if ax is None:
+            fig = figure()
+            ax = fig.gca()
+            ax.grid(True)
+            ax.set_xlabel(r'Velocity - V (m/s)')
+            ax.set_ylabel(r'Drag Coefficient - $C_D$')
+        ax.plot(self.vels, self.CD, label=self.name)
+        return ax
+
+
 class LiftingLine():
 
     name: str = None
@@ -725,8 +894,9 @@ class LiftingLine():
     _clmax: 'ndarray' = None
     clmin_shp: 'Shape' = None
     _clmin: 'ndarray' = None
-    cd0_shp: 'Shape' = None
+    cd0: float = None
     _area: float = None
+    _mac: float = None
     _ar: float = None
     _th: 'ndarray' = None
     _s: 'ndarray' = None
@@ -745,15 +915,14 @@ class LiftingLine():
                  alg_shp: 'Shape' = ConstantShape(0.0),
                  al0_shp: 'Shape' = ConstantShape(0.0),
                  cla_shp: 'Shape' = ConstantShape(2*pi),
-                 cd0_shp: 'Shape' = ConstantShape(0.0),
-                 num: int = 101) -> None:
+                 cd0: float = 0.0, num: int = 101) -> None:
         self.name = name
         self.b = b
         self.c_shp = c_shp
         self.alg_shp = alg_shp
         self.al0_shp = al0_shp
         self.cla_shp = cla_shp
-        self.cd0_shp = cd0_shp
+        self.cd0 = cd0
         self.num = num
 
     def reset(self, excl: Iterable[str] = []) -> None:
@@ -770,6 +939,12 @@ class LiftingLine():
     @area.setter
     def area(self, area: float) -> None:
         self._area = area
+
+    @property
+    def mac(self) -> float:
+        if self._mac is None:
+            self._mac = self.area/self.b
+        return self._mac
 
     @property
     def ar(self) -> float:
@@ -892,12 +1067,6 @@ class LiftingLine():
         if clmin.size != self.num:
             raise ValueError('clmin is not correct size.')
         self._clmin = clmin
-
-    @property
-    def cd0(self) -> 'ndarray':
-        if self._cd0 is None:
-            self._cd0 = self.cd0_shp(self.s)
-        return self._cd0
 
     def solve(self, cla: Optional['ndarray'] = None) -> Optional[Tuple[GeneralShape, GeneralShape]]:
 
@@ -1052,13 +1221,20 @@ class LiftingLine():
         ll_pol = LiftingLinePolar(self, al_degs, **kwargs)
         return ll_pol
 
+    def return_level_flight(self, lift: float, rho: float, vels: Iterable[float],
+                            **kwargs: Dict[str, Any]) -> LiftingLineLevelFlight:
+        vels = asarray(vels)
+        ll_lev = LiftingLineLevelFlight(self, lift, rho, vels, **kwargs)
+        return ll_lev
+
     def to_mdobj(self) -> MDReport:
         report = MDReport()
         heading = MDHeading(f'Lifting Line for {self.name:s}', 2)
         report.add_object(heading)
         table = MDTable()
         table.add_column('Name', 's', data=[self.name])
-        table.add_column('Span (m)', '.1f', data=[self.b])
+        table.add_column('Span (m)', '.3f', data=[self.b])
+        table.add_column('MAC (m)', '.3f', data=[self.mac])
         table.add_column('Area (m<sup>2</sup>)', '.3f', data=[self.area])
         table.add_column('Aspect Ratio', '.3f', data=[self.ar])
         report.add_object(table)
