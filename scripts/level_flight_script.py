@@ -14,8 +14,10 @@ rho = 1.225
 #%%
 # Lifting Line
 cd0 = 0.006
-b_e = 4.533
-c_c = 0.336
+# b_e = 2.617170337 # Minimum Power at 25 m/s
+# c_c = 0.582630605 # Minimum Power at 25 m/s
+b_e = 4.533 # Maximum L/D at 25 m/s
+c_c = 0.336 # Maximum L/D at 25 m/s
 c_r = c_c*1.1
 c_t = c_c*0.9
 c_e = (c_r + c_t)*2/pi
@@ -192,32 +194,34 @@ _ = ax_bm.legend()
 llf_e = ll_e.return_level_flight(lift, rho, vels)
 llf_t = ll_t.return_level_flight(lift, rho, vels)
 llf_c = ll_c.return_level_flight(lift, rho, vels)
-llf_b = ll_b.return_level_flight(lift, rho, vels)
+# llf_b = ll_b.return_level_flight(lift, rho, vels)
 
+#%%
+# Level Flight Plots
 axf_CL = None
 axf_CL = llf_e.plot_CL(axf_CL)
 axf_CL = llf_t.plot_CL(axf_CL)
 axf_CL = llf_c.plot_CL(axf_CL)
-axf_CL = llf_b.plot_CL(axf_CL)
+# axf_CL = llf_b.plot_CL(axf_CL)
 _ = axf_CL.legend()
 
 axf_CL = None
 axf_CL = llf_e.plot_CD(axf_CL)
 axf_CL = llf_t.plot_CD(axf_CL)
 axf_CL = llf_c.plot_CD(axf_CL)
-axf_CL = llf_b.plot_CD(axf_CL)
+# axf_CL = llf_b.plot_CD(axf_CL)
 _ = axf_CL.legend()
 
 axf_LoD = None
 axf_LoD = llf_e.plot_LoD(axf_LoD)
 axf_LoD = llf_t.plot_LoD(axf_LoD)
 axf_LoD = llf_c.plot_LoD(axf_LoD)
-axf_LoD = llf_b.plot_LoD(axf_LoD)
+# axf_LoD = llf_b.plot_LoD(axf_LoD)
 _ = axf_LoD.legend()
 
 axf_pwr = None
 axf_pwr = llf_e.plot_pwr(axf_pwr)
 axf_pwr = llf_t.plot_pwr(axf_pwr)
 axf_pwr = llf_c.plot_pwr(axf_pwr)
-axf_pwr = llf_b.plot_pwr(axf_pwr)
+# axf_pwr = llf_b.plot_pwr(axf_pwr)
 _ = axf_pwr.legend()
