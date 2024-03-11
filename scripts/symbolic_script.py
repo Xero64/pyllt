@@ -1,6 +1,6 @@
 #%%
 # Import Dependencies
-from sympy import Symbol, cos, expand, integrate, pi, sin, expand_trig
+from sympy import Symbol, cos, expand, integrate, pi, sin, expand_trig, Rational
 
 #%%
 # Create Symbols
@@ -81,6 +81,9 @@ for n, An in Adct.items():
     Cv[n] = Cvn
     print(f'Cv_A{n} = {Cvn}\n')
 
+Cv_root = {n: Cv[n].subs(thv, pi/2) for n in Cv}
+print(f'Cv_root = {Cv_root}\n')
+
 #%%
 # Bending Moment Coefficient Integration
 Cm_factor = 2/b
@@ -106,6 +109,21 @@ for n, An in Adct.items():
     check = check.expand().simplify()
     check = expand_trig(check).expand().simplify()
     print(f'check = {check}\n')
+
+Cm_root = {n: Cm[n].subs(thm, pi/2) for n in Cm}
+print(f'Cm_root = {Cm_root}\n')
+
+Cm_root_guess = {1: Rational(1, 3), 2: pi/8 - pi/4}
+
+for n in range(3, 9):
+    if n % 2 == 0:
+        Cm_root_guess[n] = 0
+    else:
+        Cm_root_guess[n] = Rational(1, (n+2)*(n+1)*4) + Rational(1, (n+1)*(n-1)*2) + Rational(1, (n-1)*(n-2)*4)
+    if n - 1 % 4 == 0:
+        Cm_root_guess[n] = -Cm_root_guess[n]
+
+print(f'Cm_root_guess = {Cm_root_guess}\n')
 
 #%%
 # Downwash and Drag Calculation
