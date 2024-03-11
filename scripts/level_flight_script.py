@@ -6,6 +6,7 @@ from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine, Tapere
 
 #%%
 # Flow Parameters
+n = 3.0
 lift = 300.0
 vel = 25.0
 vels = linspace(10.0, 35.0, 50)
@@ -39,9 +40,6 @@ c_b_shp = EllipticalShape(c_b)
 ll_e = LiftingLine('Elliptical', b_e, c_e_shp, cd0=cd0)
 display_markdown(ll_e)
 
-clmax_shp = ConstantShape(1.4)
-clmin_shp = ConstantShape(-1.4)
-
 ll_e.clmax_shp = clmax_shp
 ll_e.clmin_shp = clmin_shp
 
@@ -60,11 +58,17 @@ c_c_shp = c_e_shp.to_constant()
 ll_c = LiftingLine('Constant', b_e, c_c_shp, alg_shp, al0_shp, cd0=cd0)
 display_markdown(ll_c)
 
+ll_c.clmax_shp = clmax_shp
+ll_c.clmin_shp = clmin_shp
+
 ll_b = LiftingLine('Bell', b_b, c_b_shp, cd0=cd0)
 llr_b = ll_b.return_result_L(lift, vel=vel, rho=rho)
 llr_b.set_lift_distribution(lift, BellShape())
 llr_b.set_lifting_line_twist()
 display_markdown(ll_b)
+
+ll_b.clmax_shp = clmax_shp
+ll_b.clmin_shp = clmin_shp
 
 print(f'll_b.b/ll_e.b = {ll_b.b/ll_e.b:6f}')
 print(f'll_b.area/ll_e.area = {ll_b.area/ll_e.area:6f}')
@@ -194,7 +198,7 @@ _ = ax_bm.legend()
 llf_e = ll_e.return_level_flight(lift, rho, vels)
 llf_t = ll_t.return_level_flight(lift, rho, vels)
 llf_c = ll_c.return_level_flight(lift, rho, vels)
-# llf_b = ll_b.return_level_flight(lift, rho, vels)
+llf_b = ll_b.return_level_flight(lift, rho, vels)
 
 #%%
 # Level Flight Plots
@@ -202,26 +206,70 @@ axf_CL = None
 axf_CL = llf_e.plot_CL(axf_CL)
 axf_CL = llf_t.plot_CL(axf_CL)
 axf_CL = llf_c.plot_CL(axf_CL)
-# axf_CL = llf_b.plot_CL(axf_CL)
+axf_CL = llf_b.plot_CL(axf_CL)
 _ = axf_CL.legend()
 
 axf_CL = None
 axf_CL = llf_e.plot_CD(axf_CL)
 axf_CL = llf_t.plot_CD(axf_CL)
 axf_CL = llf_c.plot_CD(axf_CL)
-# axf_CL = llf_b.plot_CD(axf_CL)
+axf_CL = llf_b.plot_CD(axf_CL)
 _ = axf_CL.legend()
 
 axf_LoD = None
 axf_LoD = llf_e.plot_LoD(axf_LoD)
 axf_LoD = llf_t.plot_LoD(axf_LoD)
 axf_LoD = llf_c.plot_LoD(axf_LoD)
-# axf_LoD = llf_b.plot_LoD(axf_LoD)
+axf_LoD = llf_b.plot_LoD(axf_LoD)
 _ = axf_LoD.legend()
 
 axf_pwr = None
 axf_pwr = llf_e.plot_pwr(axf_pwr)
 axf_pwr = llf_t.plot_pwr(axf_pwr)
 axf_pwr = llf_c.plot_pwr(axf_pwr)
-# axf_pwr = llf_b.plot_pwr(axf_pwr)
+axf_pwr = llf_b.plot_pwr(axf_pwr)
 _ = axf_pwr.legend()
+
+#%%
+# Create Level Flight Plots
+lln_e = ll_e.return_level_flight(n*lift, rho, vels).stall()
+lln_t = ll_t.return_level_flight(n*lift, rho, vels).stall()
+lln_c = ll_c.return_level_flight(n*lift, rho, vels).stall()
+lln_b = ll_b.return_level_flight(n*lift, rho, vels).stall()
+
+#%%
+# Level Flight Plots
+axf_CL = None
+axf_CL = lln_e.plot_CL(axf_CL)
+axf_CL = lln_t.plot_CL(axf_CL)
+axf_CL = lln_c.plot_CL(axf_CL)
+axf_CL = lln_b.plot_CL(axf_CL)
+_ = axf_CL.legend()
+
+axf_CL = None
+axf_CL = lln_e.plot_CD(axf_CL)
+axf_CL = lln_t.plot_CD(axf_CL)
+axf_CL = lln_c.plot_CD(axf_CL)
+axf_CL = lln_b.plot_CD(axf_CL)
+_ = axf_CL.legend()
+
+axf_LoD = None
+axf_LoD = lln_e.plot_LoD(axf_LoD)
+axf_LoD = lln_t.plot_LoD(axf_LoD)
+axf_LoD = lln_c.plot_LoD(axf_LoD)
+axf_LoD = lln_b.plot_LoD(axf_LoD)
+_ = axf_LoD.legend()
+
+axf_pwr = None
+axf_pwr = lln_e.plot_pwr(axf_pwr)
+axf_pwr = lln_t.plot_pwr(axf_pwr)
+axf_pwr = lln_c.plot_pwr(axf_pwr)
+axf_pwr = lln_b.plot_pwr(axf_pwr)
+_ = axf_pwr.legend()
+
+axf_L = None
+axf_L = lln_e.plot_custom('L', axf_L)
+axf_L = lln_t.plot_custom('L', axf_L)
+axf_L = lln_c.plot_custom('L', axf_L)
+axf_L = lln_b.plot_custom('L', axf_L)
+_ = axf_L.legend()

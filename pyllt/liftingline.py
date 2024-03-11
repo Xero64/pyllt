@@ -830,7 +830,7 @@ class LiftingLineLevelFlight():
         return self._pwr
 
     def stall(self, norm_tol: float = 1e-6, ale_tol: float = 1e-6,
-              num_iter: int = 100, display: bool = False) -> 'LiftingLinePolar':
+              num_iter: int = 100, display: bool = False) -> 'LiftingLineLevelFlight':
 
         for vel, result in self.results.items():
             result.stall(norm_tol, ale_tol, num_iter, display)
@@ -878,6 +878,17 @@ class LiftingLineLevelFlight():
             ax.set_xlabel(r'Velocity - V (m/s)')
             ax.set_ylabel(r'Drag Coefficient - $C_D$')
         ax.plot(self.vels, self.CD, label=self.name)
+        return ax
+
+    def plot_custom(self, attr: str, ax: 'Axes' = None) -> 'Axes':
+        if ax is None:
+            fig = figure()
+            ax = fig.gca()
+            ax.grid(True)
+            ax.set_xlabel(r'Velocity - V (m/s)')
+            ax.set_ylabel(attr)
+        vals = asarray([getattr(result, attr) for result in self.results.values()])
+        ax.plot(self.vels, vals, label=self.name)
         return ax
 
 
