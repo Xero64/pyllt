@@ -120,7 +120,7 @@ for n in range(3, 9):
         Cm_root_guess[n] = 0
     else:
         Cm_root_guess[n] = Rational(1, (n+2)*(n+1)*4) + Rational(1, (n+1)*(n-1)*2) + Rational(1, (n-1)*(n-2)*4)
-    if n - 1 % 4 == 0:
+    if (n - 1) % 4 == 0:
         Cm_root_guess[n] = -Cm_root_guess[n]
 
 print(f'Cm_root_guess = {Cm_root_guess}\n')
