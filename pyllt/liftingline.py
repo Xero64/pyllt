@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Tuple
 
 from matplotlib.pyplot import figure
 from numpy import (absolute, arccos, asarray, cos, degrees, divide, flip, full,
-                   hstack, linspace, pi, radians, sin, zeros)
+                   hstack, linspace, pi, radians, sin, zeros, fill_diagonal)
 from numpy.linalg import norm, solve
 from py2md.classes import MDHeading, MDReport, MDTable
 
@@ -532,6 +532,44 @@ class LiftingLineResult():
         self.liftingline.alg_shp = alg_shp
         self.liftingline.reset(excl=['_area', '_ar', '_th', '_s', '_y', '_c', '_al0'])
 
+    def minimum_induced_drag_optimum(self, Lspec: float, Mspec: float = None,
+                                     num: int = 3, display: bool = False) -> 'LiftingLineResult':
+
+        dCDdA = asarray([n for n in range(1, num+1, 2)])
+        numsym = dCDdA.size
+
+        qS = self.q*self.liftingline.area
+        ar = self.liftingline.ar
+        b = self.liftingline.b
+        Amat = zeros((numsym, numsym))
+        fill_diagonal(Amat, dCDdA)
+        Bmat = zeros(numsym)
+        Amat[0, 0] = 1.0
+        Bmat[0] = Lspec/qS/pi/ar
+        if Mspec is not None:
+            CMopiar = Mspec/qS/b/ar
+            dCMdA = [1/3]
+            for n in range(3, num+1, 2):
+                dCMdAn = 1/(n+2)/(n+1)/4 + 1/(n+1)/(n-1)/2 + 1/(n-1)/(n-2)/4
+                if (n - 1) % 4 == 0:
+                    dCMdAn = -dCMdAn
+                dCMdA.append(dCMdAn)
+            Amat[1, :] = asarray(dCMdA)
+            Bmat[1] = CMopiar
+        if display:
+            print(f'Amat = \n{Amat}\n')
+            print(f'Bmat = {Bmat}\n')
+        Cmat = solve(Amat, Bmat)
+        if display:
+            print(f'Cmat = {Cmat}\n')
+        An = zeros(num)
+        An[::2] = Cmat
+        self.reset()
+        self.An = GeneralShape(An)
+        if display:
+            print(f'An = {An}\n')
+        return self
+
     def plot_gamma(self, ax: 'Axes' = None) -> 'Axes':
         if ax is None:
             fig = figure()
@@ -682,6 +720,7 @@ class LiftingLineResult():
 
 
 class LiftingLinePolar():
+
     name: str = None
     al_degs: 'ndarray' = None
     liftingline: 'LiftingLine' = None
@@ -768,6 +807,7 @@ class LiftingLinePolar():
 
 
 class LiftingLineLevelFlight():
+
     name: str = None
     lift: float = None
     rho: float = None
