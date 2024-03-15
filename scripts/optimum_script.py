@@ -2,7 +2,7 @@
 # Import Dependencies
 from IPython.display import display_markdown
 from numpy import pi
-from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine, TaperedShape
+from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine
 
 #%%
 # Flow Parameters
@@ -38,7 +38,16 @@ display_markdown(ll_e)
 ll_e.clmax_shp = clmax_shp
 ll_e.clmin_shp = clmin_shp
 
+llr_e = ll_e.return_result_L(lift, vel=vel, rho=rho)
+
 ll_b = LiftingLine('Bell', b_b, c_b_shp, cd0=cd0)
+
+ll_b.clmax_shp = clmax_shp
+ll_b.clmin_shp = clmin_shp
+
+llr_b = ll_b.return_result_L(lift, vel=vel, rho=rho)
+llr_b.set_lift_distribution(lift, BellShape())
+llr_b.set_lifting_line_twist()
 display_markdown(ll_b)
 
 print(f'll_b.b/ll_e.b = {ll_b.b/ll_e.b:6f}')
@@ -46,24 +55,26 @@ print(f'll_b.area/ll_e.area = {ll_b.area/ll_e.area:6f}')
 
 ll_o = LiftingLine('Optimum', b_b, c_o_shp, cd0=cd0)
 
-#%%
-# Results
-llr_e = ll_e.return_result_L(lift, vel=vel, rho=rho)
-display_markdown(llr_e)
-
-llr_b = ll_b.return_result_L(lift, vel=vel, rho=rho)
-llr_b.set_lift_distribution(lift, BellShape())
-llr_b.set_lifting_line_twist()
-display_markdown(llr_b)
+ll_o.clmax_shp = clmax_shp
+ll_o.clmin_shp = clmin_shp
 
 llr_o = ll_o.return_result_L(lift, vel=vel, rho=rho)
-llr_o.minimum_induced_drag_optimum(lift, llr_e.bmr, num=12, display=True)
+llr_o.minimum_induced_drag_optimum(lift, llr_b.bmr, num=12)
 llr_o.set_lifting_line_twist()
-display_markdown(llr_o)
+display_markdown(ll_o)
 
 print(f'llr_b.L/llr_e.L = {llr_b.L/llr_e.L:6f}')
 print(f'llr_b.CL/llr_e.CL = {llr_b.CL/llr_e.CL:6f}')
 print(f'llr_b.Di/llr_e.Di = {llr_b.Di/llr_e.Di:6f}')
+print(f'llr_b.bmr/llr_e.bmr = {llr_b.Di/llr_e.Di:6f}')
+
+#%%
+# Results
+display_markdown(llr_e)
+
+display_markdown(llr_b)
+
+display_markdown(llr_o)
 
 #%%
 # Plot Geometry

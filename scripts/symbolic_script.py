@@ -48,51 +48,60 @@ l = expand(rho*Vinf*Gamma)
 print(f'l = {l}\n')
 
 integrand = expand(l*dydth)
-print(f'integrand = {integrand}\n')
+# print(f'integrand = {integrand}\n')
 
 L = integrate(integrand, (th, pi, 0))
 L = L.simplify().subs(b**2, AR*Sref).simplify()
 print(f'L = {L}\n')
 
-CL = L/(rho*Vinf**2/2*Sref)
+q = rho*Vinf**2/2
+qS = q*Sref
+
+CL = L/qS
 print(f'CL = {CL}\n')
 
 #%%
 # Lift Distribution Coefficient
-Cl_factor = Sref/4/b
+Cl_factor = 4*b/Sref
 
 Cl = {}
 for n, An in Adct.items():
-    Cln = l.coeff(An)/(rho*Vinf**2/2*Sref)
-    Cln = Cln.expand().factor()*Cl_factor
+    Cln = l.coeff(An)/qS
+    Cln = Cln.expand().factor()/Cl_factor
     Cl[n] = Cln
     if n > 0:
         print(f'Cl_A{n} = {Cln}\n')
 
+Cl_factor = Cl_factor.subs(b, AR*Sref/b)
+print(f'Cl_factor = {Cl_factor}\n')
+
 #%%
 # Shear Force Coefficient Integration
-Cv_factor = 2/b
+Cv_factor = b/2
 
 Cv = {}
 for n, An in Adct.items():
     integrand = Cl[n]*dydth
     Cvn = integrate(integrand, (th, pi, thv))
-    Cvn = Cvn.expand().factor()*Cv_factor
+    Cvn = Cvn.expand().factor()/Cv_factor
     Cv[n] = Cvn
     print(f'Cv_A{n} = {Cvn}\n')
 
 Cv_root = {n: Cv[n].subs(thv, pi/2) for n in Cv}
 print(f'Cv_root = {Cv_root}\n')
 
+Cv_factor = Cl_factor*Cv_factor
+print(f'Cv_factor = {Cv_factor}\n')
+
 #%%
 # Bending Moment Coefficient Integration
-Cm_factor = 2/b
+Cm_factor = b/2
 
 Cm = {}
 for n, An in Adct.items():
     integrand = Cv[n]*dydth.subs(th, thv)
     Cmn = integrate(integrand, (thv, pi, thm))
-    Cmn = Cmn.expand().factor()*Cm_factor
+    Cmn = Cmn.expand().factor()/Cm_factor
     Cmn = Cmn.simplify()
     if n == 1:
         Cmn = Cmn.subs(sin(thm)**3, 3*sin(thm)/4 - sin(3*thm)/4).expand()
@@ -125,6 +134,9 @@ for n in range(3, 9):
 
 print(f'Cm_root_guess = {Cm_root_guess}\n')
 
+Cm_factor = Cv_factor*Cm_factor
+print(f'Cm_factor = {Cm_factor}\n')
+
 #%%
 # Downwash and Drag Calculation
 ali = sum([n*Ai*sin(n*th)/sin(th) for n, Ai in Adct.items()])
@@ -141,17 +153,17 @@ Di = rho*integrate(di*dydth, (th, pi, 0))
 Di = Di.simplify().subs(b**2, AR*Sref).simplify()
 print(f'Di = {Di}\n')
 
-CDi = Di/(rho*Vinf**2/2*Sref)
+CDi = Di/qS
 print(f'CDi = {CDi}\n')
 
 #%%
 # Induced Drag Coefficient Integration
-Cdi_factor = Sref/4/b
+Cdi_factor = 4*b/Sref
 
 Cdi = {}
 for n, An in Adct.items():
-    Cdin = di.coeff(An)/(rho*Vinf**2/2*Sref)
-    Cdin = Cdin.expand().factor()*Cdi_factor
+    Cdin = di.coeff(An)/qS
+    Cdin = Cdin.expand().factor()/Cdi_factor
     Cdi[n] = Cdin
     print(f'Cdi_A{n} = {Cdin}\n')
 

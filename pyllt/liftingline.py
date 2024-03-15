@@ -1,12 +1,14 @@
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Tuple
 
 from matplotlib.pyplot import figure
-from numpy import (absolute, arccos, asarray, cos, degrees, divide, flip, full,
-                   hstack, linspace, pi, radians, sin, zeros, fill_diagonal)
+from numpy import (absolute, asarray, cos, degrees, divide, fill_diagonal,
+                   full, linspace, pi, radians, sin, zeros)
 from numpy.linalg import norm, solve
 from py2md.classes import MDHeading, MDReport, MDTable
 
-from .shape import ConstantShape, EllipticalShape, GeneralShape, InducedAngleShape
+from .shape import (ConstantShape, EllipticalShape, GeneralShape,
+                    InducedAngleShape)
+from .spacing import CosineSpacing
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -25,6 +27,7 @@ class LiftingLineResult():
     _num: int = None
     _al_rad: float = None
     _al_shp: 'Shape' = None
+    _spacing: CosineSpacing = None
     _s: 'ndarray' = None
     _th: 'ndarray' = None
     _cla: 'ndarray' = None
@@ -105,7 +108,7 @@ class LiftingLineResult():
     @property
     def num(self) -> int:
         if self._num is None:
-            self._num = self.liftingline.num // 2
+            self._num = self.liftingline.num
         return self._num
 
     @num.setter
@@ -114,46 +117,15 @@ class LiftingLineResult():
         self.reset()
 
     @property
-    def s(self) -> 'ndarray':
-        if self._s is None:
-            num = self.liftingline.num//2 + 1
-            th = linspace(pi/2, 0.0, num)
-            s = cos(th)
-            self._s = hstack((-flip(s), s))
-        return self._s
-
-    @property
-    def th(self) -> 'ndarray':
-        if self._th is None:
-            self._th = arccos(self.s)
-        return self._th
-
-    def cos_n_th(self, n: int) -> 'ndarray':
-        if self._cos_n_th is None:
-            self._cos_n_th = {}
-        if n not in self._cos_n_th:
-            self._cos_n_th[n] = cos(n*self.th)
-        return self._cos_n_th[n]
-
-    def sin_n_th(self, n: int) -> 'ndarray':
-        if self._sin_n_th is None:
-            self._sin_n_th = {}
-        if n not in self._sin_n_th:
-            self._sin_n_th[n] = sin(n*self.th)
-        return self._sin_n_th[n]
-
-    @property
-    def costh(self) -> 'ndarray':
-        return self.cos_n_th(1)
-
-    @property
-    def sinth(self) -> 'ndarray':
-        return self.sin_n_th(1)
+    def spacing(self) -> CosineSpacing:
+        if self._spacing is None:
+            self._spacing = CosineSpacing(self.num)
+        return self._spacing
 
     @property
     def y(self) -> 'ndarray':
         if self._y is None:
-            self._y = self.liftingline.b/2*self.s
+            self._y = self.liftingline.b/2*self.spacing.s
         return self._y
 
     @property # Needs rework
@@ -209,11 +181,11 @@ class LiftingLineResult():
     @property
     def gamma(self) -> 'ndarray':
         if self._gamma is None:
-            self._gamma = self.gamma_shp(self.s)
+            self._gamma = self.gamma_shp(self.spacing.s)
         return self._gamma
 
     @property
-    def ali_shp(self) -> 'Shape': # Needs its own shape
+    def ali_shp(self) -> InducedAngleShape:
         if self._ali_shp is None:
             self._ali_shp = InducedAngleShape(self.An)
         return self._ali_shp
@@ -221,7 +193,7 @@ class LiftingLineResult():
     @property
     def ali(self) -> 'ndarray':
         if self._ali is None:
-            self._ali = self.ali_shp(self.s)
+            self._ali = self.ali_shp(self.spacing.s)
         return self._ali
 
     @property
@@ -233,7 +205,7 @@ class LiftingLineResult():
     @property
     def wi(self) -> 'ndarray':
         if self._wi is None:
-            self._wi = self.wi_shp(self.s)
+            self._wi = self.wi_shp(self.spacing.s)
         return self._wi
 
     @property
@@ -248,7 +220,7 @@ class LiftingLineResult():
     @property
     def ale(self) -> 'ndarray':
         if self._ale is None:
-            self._ale = self.ale_shp(self.s)
+            self._ale = self.ale_shp(self.spacing.s)
         return self._ale
 
     @property
@@ -260,7 +232,7 @@ class LiftingLineResult():
     @property
     def l(self) -> 'ndarray':
         if self._l is None:
-            self._l = self.l_shp(self.s)
+            self._l = self.l_shp(self.spacing.s)
         return self._l
 
     @property
@@ -272,7 +244,7 @@ class LiftingLineResult():
     @property
     def cl(self) -> float:
         if self._cl is None:
-            self._cl = self.cl_shp(self.s)
+            self._cl = self.cl_shp(self.spacing.s)
         return self._cl
 
     @property
@@ -284,7 +256,7 @@ class LiftingLineResult():
     @property
     def di(self) -> 'ndarray':
         if self._di is None:
-            self._di = self.di_shp(self.s)
+            self._di = self.di_shp(self.spacing.s)
         return self._di
 
     @property
@@ -296,56 +268,56 @@ class LiftingLineResult():
     @property
     def cdi(self) -> float:
         if self._cdi is None:
-            self._cdi = self.cdi_shp(self.s)
+            self._cdi = self.cdi_shp(self.spacing.s)
         return self._cdi
 
     @property
     def sf(self) -> 'ndarray':
         if self._sf is None:
-            sfoqSar = zeros(self.th.size)
+            sfoqSar = zeros(self.spacing.th.size)
             for n, An in self.An.items():
                 if n == 1:
-                    sfoqSar += An*(self.sinth*self.costh + pi - self.th)
+                    sfoqSar += An*(self.spacing.sinth*self.spacing.costh + pi - self.spacing.th)
                 else:
                     n2m1 = n**2 - 1
-                    cos_n_th = self.cos_n_th(n)
-                    sin_n_th = self.sin_n_th(n)
-                    term = n*self.sinth*cos_n_th - sin_n_th*self.costh
+                    cos_n_th = self.spacing.cos_n_th(n)
+                    sin_n_th = self.spacing.sin_n_th(n)
+                    term = n*self.spacing.sinth*cos_n_th - sin_n_th*self.spacing.costh
                     sfoqSar += 2*An/n2m1*term
             q = self.q
             Sref = self.liftingline.area
             ar = self.liftingline.ar
             self._sf = sfoqSar*q*Sref*ar
-            self._sf[self.s > 0.0] -= self.L
+            self._sf[self.spacing.s > 0.0] -= self.L
         return self._sf
 
     @property
     def bm(self) -> 'ndarray':
         if self._bm is None:
-            bmoqSarb = zeros(self.th.size)
-            pimth = pi - self.th
+            bmoqSarb = zeros(self.spacing.th.size)
+            pimth = pi - self.spacing.th
             for n, An in self.An.items():
                 if n == 1:
-                    term = pimth*self.costh/2 + 3*self.sinth/8 + self.sin_n_th(3)/24
+                    term = pimth*self.spacing.costh/2 + 3*self.spacing.sinth/8 + self.spacing.sin_n_th(3)/24
                     bmoqSarb += An*term
                 elif n == 2:
-                    term = pimth/4 - self.sin_n_th(2)/6 + self.sin_n_th(4)/48
+                    term = pimth/4 - self.spacing.sin_n_th(2)/6 + self.spacing.sin_n_th(4)/48
                     bmoqSarb += An*term
                 else:
                     nm1 = n - 1
                     nm2 = n - 2
                     np1 = n + 1
                     np2 = n + 2
-                    term = self.sin_n_th(nm2)/nm2/nm1/4
-                    term -= self.sin_n_th(n)/nm1/np1/2
-                    term += self.sin_n_th(np2)/np2/np1/4
+                    term = self.spacing.sin_n_th(nm2)/nm2/nm1/4
+                    term -= self.spacing.sin_n_th(n)/nm1/np1/2
+                    term += self.spacing.sin_n_th(np2)/np2/np1/4
                     bmoqSarb += An*term
             q = self.q
             Sref = self.liftingline.area
             ar = self.liftingline.ar
             b = self.liftingline.b
             self._bm = bmoqSarb*q*Sref*ar*b
-            check = self.s > 0.0
+            check = self.spacing.s > 0.0
             self._bm[check] -= self.L*self.y[check]
         return self._bm
 
@@ -974,7 +946,7 @@ class LiftingLine():
         self.al0_shp = al0_shp
         self.cla_shp = cla_shp
         self.cd0 = cd0
-        self.num = num
+        self.num = 2*(num//2) + 1
 
     def reset(self, excl: Iterable[str] = []) -> None:
         for attr in self.__dict__:
