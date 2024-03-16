@@ -3,11 +3,15 @@
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Union
 
 from matplotlib.pyplot import figure
-from numpy import (absolute, arccos, asarray, cos, divide, full, linspace,
-                   logical_and, logical_not, ndarray, pi, sin, zeros)
+from numpy import (absolute, asarray, divide, full, logical_and, logical_not,
+                   ndarray, pi, zeros)
+
+from .spacing import CosineSpacing
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
+
+    from .spacing import Spacing
 
 
 class Shape():
@@ -80,10 +84,9 @@ class Shape():
             ax.grid(True)
             ax.set_xlabel('s')
             ax.set_ylabel('d')
-        th = linspace(pi, 0, num)
-        s = cos(th)
-        d = self(s)
-        ax.plot(s, d, **kwargs)
+        spc = CosineSpacing(num)
+        d = self(spc)
+        ax.plot(spc.s, d, **kwargs)
         return ax
 
     def __repr__(self) -> str:
@@ -101,9 +104,9 @@ class AddShape(Shape):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        arg1 = self.arg1(s)
-        arg2 = self.arg2(s)
+    def __call__(self, spc: 'Spacing') -> 'ndarray':
+        arg1 = self.arg1(spc)
+        arg2 = self.arg2(spc)
         return arg1 + arg2
 
     def __mul__(self, other: Union[float, int]) -> Union['MulShape', 'AddShape']:
@@ -142,9 +145,9 @@ class SubShape(Shape):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        arg1 = self.arg1(s)
-        arg2 = self.arg2(s)
+    def __call__(self, spc: 'Spacing') -> 'ndarray':
+        arg1 = self.arg1(spc)
+        arg2 = self.arg2(spc)
         return arg1 - arg2
 
     def __mul__(self, other: Union[float, int]) -> Union['MulShape', 'SubShape']:
@@ -183,9 +186,9 @@ class MulShape(Shape):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        arg1 = self.arg1(s)
-        arg2 = self.arg2(s)
+    def __call__(self, spc: 'Spacing') -> 'ndarray':
+        arg1 = self.arg1(spc)
+        arg2 = self.arg2(spc)
         return arg1*arg2
 
     def __mul__(self, other: Union[float, int]) -> 'MulShape':
@@ -224,10 +227,10 @@ class DivShape(Shape):
         self.arg1 = arg1
         self.arg2 = arg2
 
-    def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        result = zeros(s.shape)
-        res1 = self.arg1(s)
-        res2 = self.arg2(s)
+    def __call__(self, spc: 'Spacing') -> 'ndarray':
+        result = zeros(spc.shape)
+        res1 = self.arg1(spc)
+        res2 = self.arg2(spc)
         res1_eql0 = absolute(res1) < 1e-12
         res2_eql0 = absolute(res2) < 1e-12
         both_eql0 = logical_and(res1_eql0, res2_eql0)
@@ -240,9 +243,9 @@ class DivShape(Shape):
             anycheck = res2_eql0.any()
         if anycheck:
             if isinstance(self.arg1, GeneralShape) and isinstance(self.arg2, GeneralShape):
-                lhopital = zeros(s.shape)
-                der1 = self.arg1.derivative(s)
-                der2 = self.arg2.derivative(s)
+                lhopital = zeros(spc.shape)
+                der1 = self.arg1.derivative(spc)
+                der2 = self.arg2.derivative(spc)
                 check_der = logical_and(der1 != 0.0, der2 != 0.0)
                 divide(der1, der2, out=lhopital, where=check_der)
                 result[both_eql0] = lhopital[both_eql0]
@@ -337,12 +340,8 @@ class ConstantShape(Shape):
         else:
             return super().__truediv__(other)
 
-    def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        if isinstance(s, float):
-            result = self.c
-        else:
-            result = full(s.shape, self.c)
-        return result
+    def __call__(self, spc: 'Spacing') -> 'ndarray':
+        return full(spc.shape, self.c)
 
     def __str__(self) -> str:
         return f'ConstantShape({self.c})'
@@ -411,8 +410,8 @@ class TaperedShape(Shape):
         else:
             return super().__truediv__(other)
 
-    def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        return self.c_root - absolute(s)*(self.c_root - self.c_tip)
+    def __call__(self, spc: 'Spacing') -> 'ndarray':
+        return self.c_root - absolute(spc.s)*(self.c_root - self.c_tip)
 
     def __str__(self) -> str:
         return f'TaperedShape({self.c_root}, {self.c_tip})'
@@ -449,26 +448,18 @@ class GeneralShape(Shape):
             self._area = self.An[0]*pi/2
         return self._area
 
-    def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        th = arccos(s)
-        if isinstance(s, float):
-            result = 0.0
-        else:
-            result = zeros(s.shape)
+    def __call__(self, spc: 'Spacing') -> 'ndarray':
+        result = zeros(spc.shape)
         for n, An in self.items():
             if An != 0.0:
-                result += An*sin(n*th)
+                result += An*spc.sin_n_th(n)
         return result
 
-    def derivative(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        th = arccos(s)
-        if isinstance(s, float):
-            result = 0.0
-        else:
-            result = zeros(s.shape)
+    def derivative(self, spc: 'Spacing') -> 'ndarray':
+        result = zeros(spc.shape)
         for n, An in self.items():
             if An != 0.0:
-                result += n*An*cos(n*th)
+                result += An*spc.n_cos_n_th(n)
         return result
 
     @property
@@ -633,13 +624,9 @@ class InducedAngleShape(GeneralShape):
             An = An.An
         super().__init__(An)
 
-    def __call__(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        th = arccos(s)
-        if isinstance(s, float):
-            result = 0.0
-        else:
-            result = zeros(s.shape)
-        sinth = sin(th)
+    def __call__(self, spc: 'Spacing') -> 'ndarray':
+        result = zeros(spc.shape)
+        sinth = spc.sinth
         sinth_not0 = absolute(sinth) > 1e-12
         sinth_eql0 = logical_not(sinth_not0)
         if isinstance(sinth_eql0, bool):
@@ -648,39 +635,35 @@ class InducedAngleShape(GeneralShape):
             sinth_eql0 = asarray(sinth_eql0)
             anycheck = sinth_eql0.any()
         if anycheck:
-            costh = cos(th)
+            costh = spc.costh
             costh_not0 = absolute(costh) > 1e-12
         for n, An in self.items():
             if n == 1:
                 result += An
             else:
                 if An != 0.0:
-                    temp1 = zeros(s.shape)
-                    divide(n*sin(n*th), sinth, out=temp1, where=sinth_not0)
+                    temp1 = zeros(spc.shape)
+                    divide(spc.n_sin_n_th(n), sinth, out=temp1, where=sinth_not0)
                     if anycheck:
-                        temp2 = zeros(s.shape)
-                        divide(n**2*cos(n*th), costh, out=temp2, where=costh_not0)
+                        temp2 = zeros(spc.shape)
+                        divide(spc.n2_cos_n_th(n), costh, out=temp2, where=costh_not0)
                         temp1[sinth_eql0] = temp2[sinth_eql0]
                     result += An*temp1
         return result
 
-    def derivative(self, s: Union[ndarray, float]) -> Union[ndarray, float]:
-        th = arccos(s)
-        if isinstance(s, float):
-            result = 0.0
-        else:
-            result = zeros(s.shape)
-        sinth = sin(th)
+    def derivative(self, spc: 'Spacing') -> 'ndarray':
+        result = zeros(spc.shape)
+        sinth = spc.sinth
         sinth2 = sinth**2
-        costh = cos(th)
+        costh = spc.costh
         check = absolute(sinth) > 1e-12
         for n, An in self.items():
             if n > 1:
                 if An != 0.0:
-                    temp1 = zeros(s.shape)
-                    divide(n**2*cos(n*th), sinth, out=temp1, where=check)
-                    temp2 = zeros(s.shape)
-                    divide(n*sin(n*th)*costh, sinth2, out=temp2, where=check)
+                    temp1 = zeros(spc.shape)
+                    divide(spc.n2_cos_n_th(n), sinth, out=temp1, where=check)
+                    temp2 = zeros(spc.shape)
+                    divide(spc.n_sin_n_th(n)*costh, sinth2, out=temp2, where=check)
                     result += An*(temp1 - temp2)
         return result
 

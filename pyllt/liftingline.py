@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Tuple
 
 from matplotlib.pyplot import figure
-from numpy import (absolute, asarray, cos, degrees, divide, fill_diagonal,
-                   full, linspace, pi, radians, sin, zeros)
+from numpy import (absolute, asarray, degrees, divide, fill_diagonal, full, pi,
+                   radians, zeros)
 from numpy.linalg import norm, solve
 from py2md.classes import MDHeading, MDReport, MDTable
 
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from numpy import ndarray
 
     from .shape import Shape
+    from .spacing import Spacing
 
 
 class LiftingLineResult():
@@ -27,7 +28,7 @@ class LiftingLineResult():
     _num: int = None
     _al_rad: float = None
     _al_shp: 'Shape' = None
-    _spacing: CosineSpacing = None
+    _spacing: 'Spacing' = None
     _s: 'ndarray' = None
     _th: 'ndarray' = None
     _cla: 'ndarray' = None
@@ -81,29 +82,12 @@ class LiftingLineResult():
         self.vel = kwargs.get('vel', 1.0)
         self.rho = kwargs.get('rho', 1.0)
         self.name = kwargs.get('name', self.liftingline.name)
-        self.num = kwargs.get('num', self.liftingline.num)
+        self._num = kwargs.get('num', self.liftingline.num)
 
     def reset(self, excl: Iterable[str] = []) -> None:
         for attr in self.__dict__:
             if attr.startswith('_') and attr not in excl:
                 self.__dict__[attr] = None
-
-    @property
-    def al_rad(self) -> float:
-        if self._al_rad is None:
-            self._al_rad = radians(self.al_deg)
-        return self._al_rad
-
-    @al_rad.setter
-    def al_rad(self, al_rad: float) -> None:
-        self._al_rad = al_rad
-        self.reset()
-
-    @property
-    def al_shp(self) -> 'Shape':
-        if self._al_shp is None:
-            self._al_shp = ConstantShape(self.al_rad)
-        return self._al_shp
 
     @property
     def num(self) -> int:
@@ -113,14 +97,37 @@ class LiftingLineResult():
 
     @num.setter
     def num(self, num: int) -> None:
-        self._num = num
         self.reset()
+        self._num = num
 
     @property
-    def spacing(self) -> CosineSpacing:
+    def al_rad(self) -> float:
+        if self._al_rad is None:
+            self._al_rad = radians(self.al_deg)
+        return self._al_rad
+
+    @al_rad.setter
+    def al_rad(self, al_rad: float) -> None:
+        self.reset()
+        self._al_rad = al_rad
+
+    @property
+    def al_shp(self) -> 'Shape':
+        if self._al_shp is None:
+            self._al_shp = ConstantShape(self.al_rad)
+        return self._al_shp
+
+    @property
+    def spacing(self) -> 'Spacing':
         if self._spacing is None:
             self._spacing = CosineSpacing(self.num)
         return self._spacing
+
+    @spacing.setter
+    def spacing(self, spacing: 'Spacing') -> None:
+        self.reset()
+        self.num = spacing.num
+        self._spacing = spacing
 
     @property
     def y(self) -> 'ndarray':
@@ -128,13 +135,13 @@ class LiftingLineResult():
             self._y = self.liftingline.b/2*self.spacing.s
         return self._y
 
-    @property # Needs rework
+    @property
     def cla(self) -> 'ndarray':
         if self._cla is None:
-            self._cla = self.liftingline.cla_shp(self.liftingline.s)
+            self._cla = self.liftingline.cla_shp(self.liftingline.spacing)
         return self._cla
 
-    @cla.setter # Needs rework
+    @cla.setter
     def cla(self, cla: 'ndarray') -> None:
         if cla.size != self.liftingline.num:
             raise ValueError('cla is not correct size.')
@@ -181,7 +188,7 @@ class LiftingLineResult():
     @property
     def gamma(self) -> 'ndarray':
         if self._gamma is None:
-            self._gamma = self.gamma_shp(self.spacing.s)
+            self._gamma = self.gamma_shp(self.spacing)
         return self._gamma
 
     @property
@@ -193,7 +200,7 @@ class LiftingLineResult():
     @property
     def ali(self) -> 'ndarray':
         if self._ali is None:
-            self._ali = self.ali_shp(self.spacing.s)
+            self._ali = self.ali_shp(self.spacing)
         return self._ali
 
     @property
@@ -205,7 +212,7 @@ class LiftingLineResult():
     @property
     def wi(self) -> 'ndarray':
         if self._wi is None:
-            self._wi = self.wi_shp(self.spacing.s)
+            self._wi = self.wi_shp(self.spacing)
         return self._wi
 
     @property
@@ -220,7 +227,7 @@ class LiftingLineResult():
     @property
     def ale(self) -> 'ndarray':
         if self._ale is None:
-            self._ale = self.ale_shp(self.spacing.s)
+            self._ale = self.ale_shp(self.spacing)
         return self._ale
 
     @property
@@ -232,7 +239,7 @@ class LiftingLineResult():
     @property
     def l(self) -> 'ndarray':
         if self._l is None:
-            self._l = self.l_shp(self.spacing.s)
+            self._l = self.l_shp(self.spacing)
         return self._l
 
     @property
@@ -244,7 +251,7 @@ class LiftingLineResult():
     @property
     def cl(self) -> float:
         if self._cl is None:
-            self._cl = self.cl_shp(self.spacing.s)
+            self._cl = self.cl_shp(self.spacing)
         return self._cl
 
     @property
@@ -256,7 +263,7 @@ class LiftingLineResult():
     @property
     def di(self) -> 'ndarray':
         if self._di is None:
-            self._di = self.di_shp(self.spacing.s)
+            self._di = self.di_shp(self.spacing)
         return self._di
 
     @property
@@ -268,7 +275,7 @@ class LiftingLineResult():
     @property
     def cdi(self) -> float:
         if self._cdi is None:
-            self._cdi = self.cdi_shp(self.spacing.s)
+            self._cdi = self.cdi_shp(self.spacing)
         return self._cdi
 
     @property
@@ -288,7 +295,8 @@ class LiftingLineResult():
             Sref = self.liftingline.area
             ar = self.liftingline.ar
             self._sf = sfoqSar*q*Sref*ar
-            self._sf[self.spacing.s > 0.0] -= self.L
+            check = self.spacing.s > 0.0
+            self._sf[check] -= self.L
         return self._sf
 
     @property
@@ -422,8 +430,8 @@ class LiftingLineResult():
 
         cla = self.cla
 
-        clmax = self.liftingline.clmax_shp(self.liftingline.s)
-        clmin = self.liftingline.clmin_shp(self.liftingline.s)
+        clmax = self.liftingline.clmax_shp(self.liftingline.spacing)
+        clmin = self.liftingline.clmin_shp(self.liftingline.spacing)
 
         count = 0
 
@@ -441,8 +449,8 @@ class LiftingLineResult():
             ali_shp = An*self.n/EllipticalShape()
             ale_shp = self.al_shp + self.liftingline.alg_shp - self.liftingline.al0_shp - ali_shp
 
-            cl = cl_shp(self.liftingline.s)
-            ale = ale_shp(self.liftingline.s)
+            cl = cl_shp(self.liftingline.spacing)
+            ale = ale_shp(self.liftingline.spacing)
 
             ale_chk = absolute(ale) > ale_tol
 
@@ -696,6 +704,8 @@ class LiftingLinePolar():
     name: str = None
     al_degs: 'ndarray' = None
     liftingline: 'LiftingLine' = None
+    _num: int = None
+    _spacing: 'Spacing' = None
     _results: Dict[float, LiftingLineResult] = None
     _CL: 'ndarray' = None
     _CDi: 'ndarray' = None
@@ -705,13 +715,30 @@ class LiftingLinePolar():
 
         self.liftingline = liftingline
         self.al_degs = al_degs
-
         self.name = kwargs.get('name', self.liftingline.name)
+        self._num = kwargs.get('num', self.liftingline.num)
 
     def reset(self, excl: Iterable[str] = []) -> None:
         for attr in self.__dict__:
             if attr.startswith('_') and attr not in excl:
                 self.__dict__[attr] = None
+
+    @property
+    def num(self) -> int:
+        if self._num is None:
+            self._num = self.liftingline.num
+        return self._num
+
+    @num.setter
+    def num(self, num: int) -> None:
+        self.reset()
+        self.num = num
+
+    @property
+    def spacing(self) -> 'Spacing':
+        if self._spacing is None:
+            self._spacing = CosineSpacing(self.num)
+        return self._spacing
 
     @property
     def results(self) -> Dict[float, LiftingLineResult]:
@@ -720,6 +747,7 @@ class LiftingLinePolar():
             for al_deg in self.al_degs:
                 name = f'{self.name:s} {al_deg:.3f}'
                 result = self.liftingline.return_result_alpha(al_deg, name=name)
+                result.spacing = self.spacing
                 self._results[al_deg] = result
         return self._results
 
@@ -785,6 +813,8 @@ class LiftingLineLevelFlight():
     rho: float = None
     vels: 'ndarray' = None
     liftingline: 'LiftingLine' = None
+    _num: int = None
+    _spacing: 'Spacing' = None
     _results: Dict[float, LiftingLineResult] = None
     _CL: 'ndarray' = None
     _CD: 'ndarray' = None
@@ -798,13 +828,30 @@ class LiftingLineLevelFlight():
         self.lift = lift
         self.rho = rho
         self.vels = vels
-
         self.name = kwargs.get('name', self.liftingline.name)
+        self._num = kwargs.get('num', self.liftingline.num)
 
     def reset(self, excl: Iterable[str] = []) -> None:
         for attr in self.__dict__:
             if attr.startswith('_') and attr not in excl:
                 self.__dict__[attr] = None
+
+    @property
+    def num(self) -> int:
+        if self._num is None:
+            self._num = self.liftingline.num
+        return self._num
+
+    @num.setter
+    def num(self, num: int) -> None:
+        self.reset()
+        self.num = num
+
+    @property
+    def spacing(self) -> 'Spacing':
+        if self._spacing is None:
+            self._spacing = CosineSpacing(self.num)
+        return self._spacing
 
     @property
     def results(self) -> Dict[float, LiftingLineResult]:
@@ -814,6 +861,7 @@ class LiftingLineLevelFlight():
                 name = f'{self.name:s} {vel:.3f}'
                 result = self.liftingline.return_result_L(self.lift, vel=vel,
                                                           rho=self.rho, name=name)
+                result.spacing = self.spacing
                 self._results[vel] = result
         return self._results
 
@@ -921,8 +969,9 @@ class LiftingLine():
     _area: float = None
     _mac: float = None
     _ar: float = None
-    _th: 'ndarray' = None
-    _s: 'ndarray' = None
+    _spacing: 'Spacing' = None
+    # _th: 'ndarray' = None
+    # _s: 'ndarray' = None
     _y: 'ndarray' = None
     _c: 'ndarray' = None
     _alg: 'ndarray' = None
@@ -980,81 +1029,39 @@ class LiftingLine():
         self._ar = ar
 
     @property
-    def th(self) -> 'ndarray':
-        if self._th is None:
-            self._th = linspace(pi, 0.0, self.num+2)[1:-1]
-        return self._th
-
-    @th.setter
-    def th(self, th: 'ndarray') -> None:
-        if th.size != self.num:
-            raise ValueError('th is not correct size.')
-        self._th = th
-
-    @property
-    def s(self) -> 'ndarray':
-        if self._s is None:
-            self._s = cos(self.th)
-        return self._s
-
-    @s.setter
-    def s(self, s: 'ndarray') -> None:
-        if s.size != self.num:
-            raise ValueError('s is not correct size.')
-        self._s = s
+    def spacing(self) -> 'Spacing':
+        if self._spacing is None:
+            self._spacing = CosineSpacing(self.num, sol=True)
+        return self._spacing
 
     @property
     def y(self) -> 'ndarray':
         if self._y is None:
-            self._y = self.b/2*self.s
+            self._y = self.b/2*self.spacing.s
         return self._y
-
-    @y.setter
-    def y(self, y: 'ndarray') -> None:
-        if y.size != self.num:
-            raise ValueError('y is not correct size.')
-        self._y = y
 
     @property
     def c(self) -> 'ndarray':
         if self._c is None:
-            self._c = self.c_shp(self.s)
+            self._c = self.c_shp(self.spacing)
         return self._c
-
-    @c.setter
-    def c(self, c: 'ndarray') -> None:
-        if c.size != self.num:
-            raise ValueError('c is not correct size.')
-        self._c = c
 
     @property
     def alg(self) -> 'ndarray':
         if self._alg is None:
-            self._alg = self.alg_shp(self.s)
+            self._alg = self.alg_shp(self.spacing)
         return self._alg
-
-    @alg.setter
-    def alg(self, alg: 'ndarray') -> None:
-        if alg.size != self.num:
-            raise ValueError('alg is not correct size.')
-        self._alg = alg
 
     @property
     def al0(self) -> 'ndarray':
         if self._al0 is None:
-            self._al0 = self.al0_shp(self.s)
+            self._al0 = self.al0_shp(self.spacing)
         return self._al0
-
-    @al0.setter
-    def al0(self, al0: 'ndarray') -> None:
-        if al0.size != self.num:
-            raise ValueError('al0 is not correct size.')
-        self._al0 = al0
 
     @property
     def cla(self) -> 'ndarray':
         if self._cla is None:
-            self._cla = self.cla_shp(self.s)
+            self._cla = self.cla_shp(self.spacing)
         return self._cla
 
     @cla.setter
@@ -1068,28 +1075,16 @@ class LiftingLine():
         if self.clmax_shp is None:
             self._clmax = full(self.num, float('inf'))
         else:
-            self._clmax = self.clmax_shp(self.s)
+            self._clmax = self.clmax_shp(self.spacing)
         return self._clmax
-
-    @clmax.setter
-    def clmax(self, clmax: 'ndarray') -> None:
-        if clmax.size != self.num:
-            raise ValueError('clmax is not correct size.')
-        self._clmax = clmax
 
     @property
     def clmin(self) -> 'ndarray':
         if self.clmin_shp is None:
             self._clmin = full(self.num, -float('inf'))
         else:
-            self._clmin = self.clmin_shp(self.s)
+            self._clmin = self.clmin_shp(self.spacing)
         return self._clmin
-
-    @clmin.setter
-    def clmin(self, clmin: 'ndarray') -> None:
-        if clmin.size != self.num:
-            raise ValueError('clmin is not correct size.')
-        self._clmin = clmin
 
     def solve(self, cla: Optional['ndarray'] = None) -> Optional[Tuple[GeneralShape, GeneralShape]]:
 
@@ -1101,10 +1096,10 @@ class LiftingLine():
         lhs = zeros((self.num, self.num))
         rhs = zeros((self.num, 2))
 
-        sinth = sin(self.th)
+        sinth = self.spacing.sinth
 
         for n in range(1, self.num+1):
-            sin_nth = sin(n*self.th)
+            sin_nth = self.spacing.sin_n_th(n)
             n_claco8s = n*claco4b
             lhs[:, n-1] = sin_nth*(sinth + n_claco8s)
 
