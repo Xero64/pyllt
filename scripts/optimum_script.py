@@ -14,8 +14,6 @@ rho = 1.225
 # Lifting Line
 cd0 = 0.02
 b = 4.8
-c_r = 0.9
-c_t = 0.6
 
 b_fac = 1.2247
 
