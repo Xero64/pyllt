@@ -25,8 +25,6 @@ b_b_fac = sqrt(1.5)
 
 fac = 3.0
 
-b_fac = 1.0 + fac*(b_b_fac - 1.0)
-
 b_fac = linspace(1.0, 1.0 + fac*(b_b_fac - 1.0), num)
 
 b = b_e*b_fac
@@ -125,15 +123,42 @@ Di = asarray([llr.Di/Di0 for llr in llrs])
 fig_Di = figure()
 ax_Di = fig_Di.gca()
 ax_Di.grid(True)
-ax_Di.plot(b, Di)
 ax_Di.set_xlabel('b')
 ax_Di.set_ylabel('Di')
+_ = ax_Di.plot(b, Di)
 
 Sref = asarray([ll.area for ll in lls])
 
 fig_Sref = figure()
 ax_Sref = fig_Sref.gca()
 ax_Sref.grid(True)
-ax_Sref.plot(b, Sref)
 ax_Sref.set_xlabel('b')
 ax_Sref.set_ylabel('Sref')
+_ = ax_Sref.plot(b, Sref)
+
+e = asarray([llr.e for llr in llrs])
+
+fig_e = figure()
+ax_e = fig_e.gca()
+ax_e.grid(True)
+ax_e.set_xlabel('b')
+ax_e.set_ylabel('e')
+_ = ax_e.plot(b, e)
+
+ar = asarray([ll.ar for ll in lls])
+
+fig_ar = figure()
+ax_ar = fig_ar.gca()
+ax_ar.grid(True)
+ax_ar.set_xlabel('b')
+ax_ar.set_ylabel('ar')
+_ = ax_ar.plot(b, ar)
+
+are = asarray([ll.ar*llr.e for ll, llr in zip(lls, llrs)])
+
+fig_are = figure()
+ax_are = fig_are.gca()
+ax_are.grid(True)
+ax_are.set_xlabel('b')
+ax_are.set_ylabel('ar*e')
+_ = ax_are.plot(b, are)
