@@ -472,12 +472,6 @@ class LiftingLineResult():
 
             cla -= dcla
 
-            # cla_chk = logical_and(dclp_chk, dcln_chk)
-            # cla[cla_chk] = self.liftingline.cla_shp(self.liftingline.s[cla_chk])
-            # self.reset()
-
-            # self.cla = cla
-
             count = count + 1
 
             if display:
