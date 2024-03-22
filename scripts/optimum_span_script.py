@@ -41,6 +41,8 @@ llr_b.set_lift_distribution(lift, BellShape())
 llr_b.set_lifting_line_twist()
 display_markdown(ll_b)
 
+display_markdown(llr_b)
+
 lls: List[LiftingLine] = []
 llrs: List[LiftingLineResult] = []
 
@@ -162,3 +164,30 @@ ax_are.grid(True)
 ax_are.set_xlabel('b')
 ax_are.set_ylabel('ar*e')
 _ = ax_are.plot(b, are)
+
+#%%
+# 3g Stall Result
+llr_bm = ll_b.return_result_L(3*lift, vel=vel, rho=rho)
+display_markdown(llr_bm)
+
+#%%
+# Plot Results
+ax_gamma = llr_bm.plot_gamma()
+
+ax_l = llr_bm.plot_l()
+
+ax_cl = llr_bm.plot_cl()
+
+ax_ali = llr_bm.plot_ali()
+
+ax_ale = llr_bm.plot_ale()
+
+ax_wi = llr_bm.plot_wi()
+
+ax_di = llr_bm.plot_di()
+
+ax_cdi = llr_bm.plot_cdi()
+
+ax_sf = llr_bm.plot_sf()
+
+ax_bm = llr_bm.plot_bm()
