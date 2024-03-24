@@ -1,7 +1,7 @@
 #%%
 # Import Dependencies
 from IPython.display import display_markdown
-from numpy import pi, sqrt
+from numpy import pi, sqrt, divide
 from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine
 from matplotlib.pyplot import figure
 
@@ -139,7 +139,18 @@ cl_max = ll_b.clmax_shp(ll_b.spacing)
 al0 = ll_b.al0_shp(ll_b.spacing)
 ale2 = llr_bm2.ale_shp(ll_b.spacing)
 
-cl2 = llr_bm1.cla*ale2
+cla1 = llr_bm1.cla
+cla2 = llr_bm2.cla
+
+cl2 = cla2*ale2
+
+cl_def = cla_def*ale2
+cl_def[cl_def > cl_max] = cl_max[cl_def > cl_max]
+
+dcl_1 = cl_max - cl2
+dcl_1[dcl_1 > 0.0] = 0.0
+
+dcl_2 = cl_def - cl2
 
 ax_ale = None
 ax_ale = llr_bm2.plot_ale(ax_ale)
@@ -147,31 +158,49 @@ _ = ax_ale.legend()
 
 fig = figure()
 ax = fig.gca()
-ax.plot(ll_b.y, cla_def*ale2, label='Bell AoA 12.0 deg')
+ax.grid(True)
+ax.plot(ll_b.y, cla_def*ale2, label='cla_def*ale2')
+ax.plot(ll_b.y, cl_def, label='cl_def')
+ax.plot(ll_b.y, cl2, label='cl2')
 _ = ax.legend()
 
 fig = figure()
 ax = fig.gca()
-ax.plot(ll_b.y, cl2, label='Bell AoA 12.0 deg')
+ax.grid(True)
+ax.plot(ll_b.y, dcl_1, label='dcl_1')
+ax.plot(ll_b.y, dcl_2, label='dcl_2')
 _ = ax.legend()
+
+dcla_2 = divide(dcl_2, ale2)
 
 fig = figure()
 ax = fig.gca()
-ax.plot(ll_b.y, cla_def*ale2 - cl2, label='Bell AoA 12.0 deg')
+ax.grid(True)
+ax.plot(ll_b.y, dcla_2, label='dcla')
 _ = ax.legend()
 
-dcl2a = cl2 - cl_max
-dcl2a[dcl2a < 0.0] = 0.0
-
-dcl2b = cl_max - cla_def*ale2
-# dcl2b[dcl2b < 0.0] = 0.0
-
-dcla = cla_def - llr_bm2.cla
-dcla[dcl2b < 0.0] = 0.0
+cla2 = cla2 + dcla_2
+cla2[cla2 > cla_def] = cla_def[cla2 > cla_def]
 
 fig = figure()
 ax = fig.gca()
-ax.plot(ll_b.y, dcl2a, label='dcl2a')
-ax.plot(ll_b.y, dcl2b, label='dcl2b')
-ax.plot(ll_b.y, dcla, label='dcla')
+ax.grid(True)
+ax.plot(ll_b.y, cla1, label='llr_bm1.cla')
+ax.plot(ll_b.y, cla2, label='cla2')
 _ = ax.legend()
+
+# dcl2a = cl2 - cl_max
+# dcl2a[dcl2a < 0.0] = 0.0
+
+# dcl2b = cl_max - cla_def*ale2
+# # dcl2b[dcl2b < 0.0] = 0.0
+
+# dcla = cla_def - llr_bm2.cla
+# dcla[dcl2b < 0.0] = 0.0
+
+# fig = figure()
+# ax = fig.gca()
+# ax.plot(ll_b.y, dcl2a, label='dcl2a')
+# ax.plot(ll_b.y, dcl2b, label='dcl2b')
+# ax.plot(ll_b.y, dcla, label='dcla')
+# _ = ax.legend()
