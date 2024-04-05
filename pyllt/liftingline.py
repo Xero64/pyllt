@@ -964,8 +964,6 @@ class LiftingLine():
     _mac: float = None
     _ar: float = None
     _spacing: 'Spacing' = None
-    # _th: 'ndarray' = None
-    # _s: 'ndarray' = None
     _y: 'ndarray' = None
     _c: 'ndarray' = None
     _alg: 'ndarray' = None
@@ -1115,25 +1113,25 @@ class LiftingLine():
             return Ana, An0
 
     @property
-    def Ana(self) -> 'ndarray':
+    def Ana(self) -> GeneralShape:
         if self._Ana is None:
             self.solve()
         return self._Ana
 
     @Ana.setter
-    def Ana(self, Ana: 'ndarray') -> None:
+    def Ana(self, Ana: GeneralShape) -> None:
         if Ana.size != self.num:
             raise ValueError('Ana is not correct size.')
         self._Ana = Ana
 
     @property
-    def An0(self) -> 'ndarray':
+    def An0(self) -> GeneralShape:
         if self._An0 is None:
             self.solve()
         return self._An0
 
     @An0.setter
-    def An0(self, An0: 'ndarray') -> None:
+    def An0(self, An0: GeneralShape) -> None:
         if An0.size != self.num:
             raise ValueError('An0 is not correct size.')
         self._An0 = An0
@@ -1204,6 +1202,26 @@ class LiftingLine():
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Lift Coefficient Slope - $c_{la}$ (1/rad)')
         ax.plot(self.y, self.cla, label=self.name)
+        return ax
+
+    def plot_An0(self, ax: 'Axes' = None) -> 'Axes':
+        if ax is None:
+            fig = figure()
+            ax = fig.gca()
+            ax.grid(True)
+            ax.set_xlabel(r'Spanwise Coordinate - y (m)')
+            ax.set_ylabel(r'Zero Lift Distribution Shape - $A_{n0}$')
+        ax.plot(self.y, self.An0(self.spacing), label=self.name)
+        return ax
+
+    def plot_Ana(self, ax: 'Axes' = None) -> 'Axes':
+        if ax is None:
+            fig = figure()
+            ax = fig.gca()
+            ax.grid(True)
+            ax.set_xlabel(r'Spanwise Coordinate - y (m)')
+            ax.set_ylabel(r'Lift Distribution Shape Variation - $A_{na}$')
+        ax.plot(self.y, self.Ana(self.spacing), label=self.name)
         return ax
 
     def return_result_alpha(self, al_deg: float, **kwargs: Dict[str, Any]) -> 'LiftingLineResult':

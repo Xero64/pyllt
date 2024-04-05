@@ -1,8 +1,9 @@
 #%%
 # Import Dependencies
 from IPython.display import display_markdown
-from numpy import linspace, pi, radians
-from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine, TaperedShape
+from numpy import linspace, pi, radians, sqrt
+from pyllt import (BellShape, ConstantShape, EllipticalShape, LiftingLine,
+                   TaperedShape)
 
 #%%
 # Flow Parameters
@@ -16,7 +17,7 @@ b = 4.8
 c_r = 0.9
 c_t = 0.6
 
-b_b = 1.2247*b
+b_b = sqrt(1.5)*b
 
 cla_shp = ConstantShape(2*pi)
 
@@ -326,3 +327,19 @@ ax_cl = None
 ax_cl = llp_em.results[al_degs[-1]].plot_cl(ax_cl)
 ax_cl = llp_tm.results[al_degs[-1]].plot_cl(ax_cl)
 _ = ax_cl.legend()
+
+#%%
+# Plot An
+ax_An0 = None
+ax_An0 = ll_e.plot_An0(ax_An0)
+ax_An0 = ll_t.plot_An0(ax_An0)
+ax_An0 = ll_b.plot_An0(ax_An0)
+ax_An0 = ll_c.plot_An0(ax_An0)
+_ = ax_An0.legend()
+
+ax_Ana = None
+ax_Ana = ll_e.plot_Ana(ax_Ana)
+ax_Ana = ll_t.plot_Ana(ax_Ana)
+ax_Ana = ll_b.plot_Ana(ax_Ana)
+ax_Ana = ll_c.plot_Ana(ax_Ana)
+_ = ax_Ana.legend()
