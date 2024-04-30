@@ -194,7 +194,7 @@ class LiftingLineResult():
     @property
     def ali_shp(self) -> InducedAngleShape:
         if self._ali_shp is None:
-            self._ali_shp = InducedAngleShape(self.An)
+            self._ali_shp = InducedAngleShape(self.An.An)
         return self._ali_shp
 
     @property

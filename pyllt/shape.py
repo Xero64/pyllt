@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Union
 
 from matplotlib.pyplot import figure
 from numpy import (absolute, asarray, divide, full, logical_and, logical_not,
-                   ndarray, pi, zeros)
+                   ndarray, pi, zeros, radians)
 
 from .spacing import CosineSpacing
 
@@ -281,140 +281,149 @@ class DivShape(Shape):
 
 class ConstantShape(Shape):
 
-    c: float = None
+    value: float = None
 
-    def __init__(self, c: float) -> None:
-        self.c = c
+    def __init__(self, value: float) -> None:
+        self.value = value
 
     @property
     def area(self) -> None:
         if self._area is None:
-            self._area = 2*self.c
+            self._area = 2*self.value
         return self._area
+
+    def as_radians(self) -> 'TaperedShape':
+        self.value = radians(self.value)
+        return self
 
     def __add__(self, other: Union['ConstantShape', Shape]) -> Union['ConstantShape', AddShape]:
         if isinstance(other, ConstantShape):
-            return ConstantShape(self.c + other.c)
+            return ConstantShape(self.value + other.value)
         else:
             return super().__add__(other)
 
     def __radd__(self, other: Union['ConstantShape', Shape]) -> Union['ConstantShape', AddShape]:
         if isinstance(other, ConstantShape):
-            return ConstantShape(self.c + other.c)
+            return ConstantShape(self.value + other.value)
         else:
             return super().__radd__(other)
 
     def __sub__(self, other: Union['ConstantShape', Shape]) -> Union['ConstantShape', SubShape]:
         if isinstance(other, ConstantShape):
-            return ConstantShape(self.c - other.c)
+            return ConstantShape(self.value - other.value)
         else:
             return super().__sub__(other)
 
     def __rsub__(self, other: Union['ConstantShape', Shape]) -> Union['ConstantShape', SubShape]:
         if isinstance(other, ConstantShape):
-            return ConstantShape(other.c - self.c)
+            return ConstantShape(other.value - self.value)
         else:
             return super().__rsub__(other)
 
     def __mul__(self, other: Union[float, int, Shape]) -> Union['ConstantShape', MulShape]:
         if isinstance(other, (float, int)):
-            return ConstantShape(self.c*other)
+            return ConstantShape(self.value*other)
         else:
             return super().__mul__(other)
 
     def __rmul__(self, other: Union[float, int, Shape]) -> Union['ConstantShape', MulShape]:
         if isinstance(other, (float, int)):
-            return ConstantShape(other*self.c)
+            return ConstantShape(other*self.value)
         else:
             return super().__rmul__(other)
 
     def __div__(self, other: Union[float, int, Shape]) -> Union['ConstantShape', DivShape]:
         if isinstance(other, (float, int)):
-            return ConstantShape(self.c/other)
+            return ConstantShape(self.value/other)
         else:
             return super().__div__(other)
 
     def __truediv__(self, other: Union[float, int, Shape]) -> Union['ConstantShape', DivShape]:
         if isinstance(other, (float, int)):
-            return ConstantShape(self.c/other)
+            return ConstantShape(self.value/other)
         else:
             return super().__truediv__(other)
 
     def __call__(self, spc: 'Spacing') -> 'ndarray':
-        return full(spc.shape, self.c)
+        return full(spc.shape, self.value)
 
     def __str__(self) -> str:
-        return f'ConstantShape({self.c})'
+        return f'ConstantShape({self.value})'
 
 
 class TaperedShape(Shape):
 
-    c_root: float = None
-    c_tip: float = None
+    value_root: float = None
+    value_tip: float = None
 
-    def __init__(self, c_root: float, c_tip: float) -> None:
-        self.c_root = c_root
-        self.c_tip = c_tip
+    def __init__(self, value_root: float, value_tip: float) -> None:
+        self.value_root = value_root
+        self.value_tip = value_tip
 
     @property
     def area(self) -> None:
         if self._area is None:
-            self._area = self.c_root + self.c_tip
+            self._area = self.value_root + self.value_tip
         return self._area
+
+    def as_radians(self) -> 'TaperedShape':
+        self.value_root = radians(self.value_root)
+        self.value_tip = radians(self.value_tip)
+        return self
 
     def __add__(self, other: Union['TaperedShape', Shape]) -> Union['TaperedShape', AddShape]:
         if isinstance(other, TaperedShape):
-            return TaperedShape(self.c_root + other.c_root, self.c_tip + other.c_tip)
+            return TaperedShape(self.value_root + other.value_root, self.value_tip + other.value_tip)
         else:
             return super().__add__(other)
 
     def __radd__(self, other: Union['TaperedShape', Shape]) -> Union['TaperedShape', AddShape]:
         if isinstance(other, TaperedShape):
-            return TaperedShape(self.c_root + other.c_root, self.c_tip + other.c_tip)
+            return TaperedShape(self.value_root + other.value_root, self.value_tip + other.value_tip)
         else:
             return super().__radd__(other)
 
     def __sub__(self, other: Union['TaperedShape', Shape]) -> Union['TaperedShape', SubShape]:
         if isinstance(other, TaperedShape):
-            return TaperedShape(self.c_root - other.c_root, self.c_tip - other.c_tip)
+            return TaperedShape(self.value_root - other.value_root, self.value_tip - other.value_tip)
         else:
             return super().__sub__(other)
 
     def __rsub__(self, other: Union['TaperedShape', Shape]) -> Union['TaperedShape', SubShape]:
         if isinstance(other, TaperedShape):
-            return TaperedShape(other.c_root - self.c_root, other.c_tip - self.c_tip)
+            return TaperedShape(other.value_root - self.value_root, other.value_tip - self.value_tip)
         else:
             return super().__rsub__(other)
 
     def __mul__(self, other: Union[float, ndarray, Shape]) -> Union['TaperedShape', MulShape]:
         if isinstance(other, (float, int)):
-            return TaperedShape(self.c_root*other, self.c_tip*other)
+            return TaperedShape(self.value_root*other, self.value_tip*other)
         else:
             return super().__mul__(other)
 
     def __rmul__(self, other: Union[float, ndarray, Shape]) -> Union['TaperedShape', MulShape]:
         if isinstance(other, (float, int)):
-            return TaperedShape(other*self.c_root, other*self.c_tip)
+            return TaperedShape(other*self.value_root, other*self.value_tip)
         else:
             return super().__rmul__(other)
 
     def __div__(self, other: Union[float, ndarray, Shape]) -> Union['TaperedShape', DivShape]:
         if isinstance(other, (float, int)):
-            return TaperedShape(self.c_root/other, self.c_tip/other)
+            return TaperedShape(self.value_root/other, self.value_tip/other)
         else:
             return super().__div__(other)
 
     def __truediv__(self, other: Union[float, ndarray, Shape]) -> Union['TaperedShape', DivShape]:
         if isinstance(other, (float, int)):
-            return TaperedShape(self.c_root/other, self.c_tip/other)
+            return TaperedShape(self.value_root/other, self.value_tip/other)
         else:
             return super().__truediv__(other)
 
     def __call__(self, spc: 'Spacing') -> 'ndarray':
-        return self.c_root - absolute(spc.s)*(self.c_root - self.c_tip)
+        return self.value_root - absolute(spc.s)*(self.value_root - self.value_tip)
 
     def __str__(self) -> str:
-        return f'TaperedShape({self.c_root}, {self.c_tip})'
+        return f'TaperedShape({self.value_root}, {self.value_tip})'
 
 
 class GeneralShape(Shape):
@@ -617,12 +626,30 @@ class BellShape(GeneralShape):
         return f'BellShape({self.An})'
 
 
-class InducedAngleShape(GeneralShape):
+class InducedAngleShape(Shape):
 
-    def __init__(self, An: Union[GeneralShape, 'ndarray']) -> None:
-        if isinstance(An, GeneralShape):
-            An = An.An
-        super().__init__(An)
+    An: ndarray = None
+    _n: Iterable[int] = None
+
+    def __init__(self, An: ndarray) -> None:
+        self.An = asarray(An)
+
+    def reset(self) -> None:
+        for attr in self.__dict__:
+            if attr.startswith('_'):
+                setattr(self, attr, None)
+
+    def resize(self, size: int) -> None:
+        An = zeros(size)
+        An[:self.An.size] = self.An
+        self.An = An
+        self.reset()
+
+    @property
+    def n(self) -> Iterable[int]:
+        if self._n is None:
+            self._n = range(1, self.An.size + 1)
+        return self._n
 
     def __call__(self, spc: 'Spacing') -> 'ndarray':
         result = zeros(spc.shape)
@@ -666,6 +693,106 @@ class InducedAngleShape(GeneralShape):
                     divide(spc.n_sin_n_th(n)*costh, sinth2, out=temp2, where=check)
                     result += An*(temp1 - temp2)
         return result
+
+    @property
+    def size(self) -> int:
+        return self.An.size
+
+    def __getitem__(self, n: Union[int, slice]) -> Union[float, ndarray]:
+        return self.An[n]
+
+    def __setitem__(self, n: Union[int, slice], An: Union[float, ndarray]) -> None:
+        self.An[n] = An
+
+    def __mul__(self, other: Union[float, ndarray, Shape]) -> Union['InducedAngleShape', MulShape]:
+        if isinstance(other, (int, float, ndarray)):
+            return InducedAngleShape(self.An*other)
+        else:
+            return super().__mul__(other)
+
+    def __rmul__(self, other: Union[float, ndarray, Shape]) -> Union['InducedAngleShape', MulShape]:
+        if isinstance(other, (int, float, ndarray)):
+            return InducedAngleShape(other*self.An)
+        else:
+            return super().__rmul__(other)
+
+    def __div__(self, other: Union[float, ndarray, Shape]) -> Union['InducedAngleShape', DivShape]:
+        if isinstance(other, (float, ndarray)):
+            return InducedAngleShape(self.An/other)
+        else:
+            return super().__div__(other)
+
+    def __truediv__(self, other: Union[float, ndarray, Shape]) -> Union['InducedAngleShape', DivShape]:
+        if isinstance(other, (float, ndarray)):
+            return InducedAngleShape(self.An/other)
+        else:
+            return super().__truediv__(other)
+
+    def __add__(self, other: Union['InducedAngleShape', Shape]) -> Union['InducedAngleShape', AddShape]:
+        if isinstance(other, InducedAngleShape):
+            if self.size == other.size:
+                result = InducedAngleShape(self.An + other.An)
+            elif self.size > other.size:
+                result = InducedAngleShape(self.An[:other.size] + other.An)
+            elif self.size < other.size:
+                result = InducedAngleShape(self.An + other.An[:self.size])
+            return result
+        else:
+            return super().__add__(other)
+
+    def __radd__(self, other: Union['InducedAngleShape', Shape]) -> Union['InducedAngleShape', AddShape]:
+        if isinstance(other, InducedAngleShape):
+            if self.size == other.size:
+                result = InducedAngleShape(other.An + self.An)
+            elif self.size > other.size:
+                result = InducedAngleShape(other.An[:self.size] + self.An)
+            elif self.size < other.size:
+                result = InducedAngleShape(other.An + self.An[:other.size])
+            return result
+        else:
+            return super().__radd__(other)
+
+    def __sub__(self, other: Union['InducedAngleShape', Shape]) -> Union['InducedAngleShape', SubShape]:
+        if isinstance(other, InducedAngleShape):
+            if self.size == other.size:
+                result = InducedAngleShape(self.An - other.An)
+            elif self.size > other.size:
+                result = InducedAngleShape(self.An[:other.size] - other.An)
+            elif self.size < other.size:
+                result = InducedAngleShape(self.An - other.An[:self.size])
+            return result
+        else:
+            return super().__sub__(other)
+
+    def __rsub__(self, other: Union['InducedAngleShape', Shape]) -> Union['InducedAngleShape', SubShape]:
+        if isinstance(other, InducedAngleShape):
+            if self.size == other.size:
+                result = InducedAngleShape(other.An - self.An)
+            elif self.size > other.size:
+                result = InducedAngleShape(other.An[:self.size] - self.An)
+            elif self.size < other.size:
+                result = InducedAngleShape(other.An - self.An[:other.size])
+            return result
+        else:
+            return super().__rsub__(other)
+
+    def __pow__(self, other: float) -> 'InducedAngleShape':
+        if isinstance(other, (float, int)):
+            return InducedAngleShape(self.An**other)
+        else:
+            raise TypeError(f'unsupported operand type(s) for ** or pow(): {type(self)} and {type(other)}')
+
+    def sum(self) -> float:
+        return self.An.sum()
+
+    def keys(self) -> Iterable[int]:
+        return self.n
+
+    def values(self) -> ndarray:
+        return self.An
+
+    def items(self) -> Iterable[tuple[int, float]]:
+        return zip(self.n, self.An)
 
     def __str__(self) -> str:
         return f'InducedAngleShape({self.An})'
