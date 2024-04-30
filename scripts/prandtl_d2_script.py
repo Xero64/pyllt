@@ -10,8 +10,9 @@ b = 3.749 # m
 c_r = 0.4 # m
 c_t = 0.1 # m
 m = 6.577 # kg
-W = m*9.0665 # N
-vel = 12.3 # m/s
+g = 9.80665 # m/s**2
+W = m*g # N
+vel = 12.78 # m/s
 rho = 1.225 # kg/m^3
 
 c_shp = TaperedShape(c_r, c_t)
