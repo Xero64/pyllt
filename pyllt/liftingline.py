@@ -703,6 +703,7 @@ class LiftingLinePolar():
     _results: Dict[float, LiftingLineResult] = None
     _CL: 'ndarray' = None
     _CDi: 'ndarray' = None
+    _CD: 'ndarray' = None
 
     def __init__(self, liftingline: 'LiftingLine', al_degs: 'ndarray',
                  **kwargs: Dict[str, Any]) -> None:
@@ -757,6 +758,12 @@ class LiftingLinePolar():
             self._CDi = asarray([result.CDi for result in self.results.values()])
         return self._CDi
 
+    @property
+    def CD(self) -> 'ndarray':
+        if self._CD is None:
+            self._CD = asarray([result.CD for result in self.results.values()])
+        return self._CD
+
     def stall(self, norm_tol: float = 1e-6, ale_tol: float = 1e-6,
               num_iter: int = 100, display: bool = False) -> 'LiftingLinePolar':
 
@@ -793,10 +800,10 @@ class LiftingLinePolar():
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
-            ax.set_xlabel(r'Induced Drag Coefficient - $C_{Di}$')
+            ax.set_xlabel(r'Drag Coefficient - $C_D$')
             ax.set_ylabel(r'Lift Coefficient - $C_L$')
             ax.set_title(r'Drag Polar')
-        ax.plot(self.CDi, self.CL, label=self.name)
+        ax.plot(self.CD, self.CL, label=self.name)
         return ax
 
 
