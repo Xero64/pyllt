@@ -1,9 +1,9 @@
 #%%
 # Import Dependencies
 from IPython.display import display_markdown
-from numpy import pi, sqrt, divide
-from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine
 from matplotlib.pyplot import figure
+from numpy import divide, pi, sqrt
+from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine
 
 #%%
 # Flow Parameters

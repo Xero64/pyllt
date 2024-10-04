@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Union
 
 from matplotlib.pyplot import figure
 from numpy import (absolute, asarray, divide, full, logical_and, logical_not,
-                   ndarray, pi, zeros, radians)
+                   ndarray, pi, radians, zeros)
 
 from .spacing import CosineSpacing
 

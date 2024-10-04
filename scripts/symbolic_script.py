@@ -1,6 +1,7 @@
 #%%
 # Import Dependencies
-from sympy import Symbol, cos, expand, integrate, pi, sin, expand_trig, Rational
+from sympy import (Rational, Symbol, cos, expand, expand_trig, integrate, pi,
+                   sin)
 
 #%%
 # Create Symbols

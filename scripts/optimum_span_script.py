@@ -1,11 +1,12 @@
 #%%
 # Import Dependencies
 from typing import List
+
 from IPython.display import display_markdown
-from numpy import pi, linspace, asarray, sqrt
+from matplotlib.pyplot import figure
+from numpy import asarray, linspace, pi, sqrt
 from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine
 from pyllt.liftingline import LiftingLineResult
-from matplotlib.pyplot import figure
 
 #%%
 # Flow Parameters

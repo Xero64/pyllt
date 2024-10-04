@@ -2,7 +2,8 @@
 # Import Dependencies
 from IPython.display import display_markdown
 from numpy import linspace, pi, radians
-from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine, TaperedShape
+from pyllt import (BellShape, ConstantShape, EllipticalShape, LiftingLine,
+                   TaperedShape)
 
 #%%
 # Flow Parameters
