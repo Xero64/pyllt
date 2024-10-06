@@ -2,6 +2,7 @@
 # Import Dependencies
 from IPython.display import display_markdown
 from numpy import pi
+
 from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine
 
 #%%

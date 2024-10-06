@@ -3,6 +3,7 @@
 from IPython.display import display_markdown
 from matplotlib.pyplot import figure
 from numpy import divide, pi, sqrt
+
 from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine
 
 #%%

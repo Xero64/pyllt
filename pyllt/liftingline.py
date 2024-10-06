@@ -4,6 +4,7 @@ from matplotlib.pyplot import figure
 from numpy import (absolute, asarray, degrees, divide, fill_diagonal, full, pi,
                    radians, zeros)
 from numpy.linalg import norm, solve
+
 from py2md.classes import MDHeading, MDReport, MDTable
 
 from .shape import (ConstantShape, EllipticalShape, GeneralShape,
