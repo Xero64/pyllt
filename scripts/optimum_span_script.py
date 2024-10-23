@@ -1,6 +1,6 @@
 #%%
 # Import Dependencies
-from typing import List
+
 
 from IPython.display import display_markdown
 from matplotlib.pyplot import figure
@@ -45,8 +45,8 @@ display_markdown(ll_b)
 
 display_markdown(llr_b)
 
-lls: List[LiftingLine] = []
-llrs: List[LiftingLineResult] = []
+lls: list[LiftingLine] = []
+llrs: list[LiftingLineResult] = []
 
 for bi, ci in zip(b, c):
     c_shp = EllipticalShape(ci)

@@ -1,10 +1,10 @@
-from typing import TYPE_CHECKING, Any, Dict, Iterable, Optional, Tuple
+from collections.abc import Iterable
+from typing import TYPE_CHECKING, Any
 
 from matplotlib.pyplot import figure
 from numpy import (absolute, asarray, degrees, divide, fill_diagonal, full, pi,
                    radians, zeros)
 from numpy.linalg import norm, solve
-
 from py2md.classes import MDHeading, MDReport, MDTable
 
 from .shape import (ConstantShape, EllipticalShape, GeneralShape,
@@ -13,7 +13,7 @@ from .spacing import CosineSpacing
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
-    from numpy import ndarray
+    from numpy.typing import NDArray
 
     from .shape import Shape
     from .spacing import Spacing
@@ -30,32 +30,32 @@ class LiftingLineResult():
     _al_rad: float = None
     _al_shp: 'Shape' = None
     _spacing: 'Spacing' = None
-    _s: 'ndarray' = None
-    _th: 'ndarray' = None
-    _cla: 'ndarray' = None
-    _cos_n_th: Dict[int, 'ndarray'] = None
-    _sin_n_th: Dict[int, 'ndarray'] = None
-    _y: 'ndarray' = None
+    _s: 'NDArray' = None
+    _th: 'NDArray' = None
+    _cla: 'NDArray' = None
+    _cos_n_th: dict[int, 'NDArray'] = None
+    _sin_n_th: dict[int, 'NDArray'] = None
+    _y: 'NDArray' = None
     _An: GeneralShape = None
-    _n: 'ndarray' = None
+    _n: 'NDArray' = None
     _q: float = None
     _gamma_shp: 'Shape' = None
-    _gamma: 'ndarray' = None
+    _gamma: 'NDArray' = None
     _ali_shp: 'Shape' = None
-    _ali: 'ndarray' = None
+    _ali: 'NDArray' = None
     _wi_shp: 'Shape' = None
-    _wi: 'ndarray' = None
+    _wi: 'NDArray' = None
     _ale_shp: 'Shape' = None
-    _ale: 'ndarray' = None
+    _ale: 'NDArray' = None
     _l_shp: 'Shape' = None
-    _l: 'ndarray' = None
+    _l: 'NDArray' = None
     _cl_shp: 'Shape' = None
-    _cl: 'ndarray' = None
+    _cl: 'NDArray' = None
     _di_shp: 'Shape' = None
-    _di: 'ndarray' = None
+    _di: 'NDArray' = None
     _cdi_shp: 'Shape' = None
-    _cdi: 'ndarray' = None
-    _d: 'ndarray' = None
+    _cdi: 'NDArray' = None
+    _d: 'NDArray' = None
     _CL: float = None
     _L: float = None
     _CDi: float = None
@@ -66,16 +66,16 @@ class LiftingLineResult():
     _D: float = None
     _delta: float = None
     _e: float = None
-    _dcl: 'ndarray' = None
+    _dcl: 'NDArray' = None
     _norm_dcl: float = None
-    _sf: 'ndarray' = None
-    _bm: 'ndarray' = None
+    _sf: 'NDArray' = None
+    _bm: 'NDArray' = None
     _bmr: float = None
     _pwr: float = None
     _LoD: float = None
 
     def __init__(self, liftingline: 'LiftingLine',
-                 al_deg: float, **kwargs: Dict[str, Any]) -> None:
+                 al_deg: float, **kwargs: dict[str, Any]) -> None:
 
         self.liftingline = liftingline
         self.al_deg = al_deg
@@ -131,19 +131,19 @@ class LiftingLineResult():
         self._spacing = spacing
 
     @property
-    def y(self) -> 'ndarray':
+    def y(self) -> 'NDArray':
         if self._y is None:
             self._y = self.liftingline.b/2*self.spacing.s
         return self._y
 
     @property
-    def cla(self) -> 'ndarray':
+    def cla(self) -> 'NDArray':
         if self._cla is None:
             self._cla = self.liftingline.cla_shp(self.liftingline.spacing)
         return self._cla
 
     @cla.setter
-    def cla(self, cla: 'ndarray') -> None:
+    def cla(self, cla: 'NDArray') -> None:
         if cla.size != self.liftingline.num:
             raise ValueError('cla is not correct size.')
         self._cla = cla
@@ -165,7 +165,7 @@ class LiftingLineResult():
         self._An = An
 
     @property
-    def n(self) -> 'ndarray':
+    def n(self) -> 'NDArray':
         if self._n is None:
             self._n = asarray(self.An.n)
         return self._n
@@ -187,7 +187,7 @@ class LiftingLineResult():
         return self._gamma_shp
 
     @property
-    def gamma(self) -> 'ndarray':
+    def gamma(self) -> 'NDArray':
         if self._gamma is None:
             self._gamma = self.gamma_shp(self.spacing)
         return self._gamma
@@ -199,7 +199,7 @@ class LiftingLineResult():
         return self._ali_shp
 
     @property
-    def ali(self) -> 'ndarray':
+    def ali(self) -> 'NDArray':
         if self._ali is None:
             self._ali = self.ali_shp(self.spacing)
         return self._ali
@@ -211,7 +211,7 @@ class LiftingLineResult():
         return self._wi_shp
 
     @property
-    def wi(self) -> 'ndarray':
+    def wi(self) -> 'NDArray':
         if self._wi is None:
             self._wi = self.wi_shp(self.spacing)
         return self._wi
@@ -226,7 +226,7 @@ class LiftingLineResult():
         return self._ale_shp
 
     @property
-    def ale(self) -> 'ndarray':
+    def ale(self) -> 'NDArray':
         if self._ale is None:
             self._ale = self.ale_shp(self.spacing)
         return self._ale
@@ -238,7 +238,7 @@ class LiftingLineResult():
         return self._l_shp
 
     @property
-    def l(self) -> 'ndarray':
+    def l(self) -> 'NDArray':
         if self._l is None:
             self._l = self.l_shp(self.spacing)
         return self._l
@@ -262,7 +262,7 @@ class LiftingLineResult():
         return self._di_shp
 
     @property
-    def di(self) -> 'ndarray':
+    def di(self) -> 'NDArray':
         if self._di is None:
             self._di = self.di_shp(self.spacing)
         return self._di
@@ -280,7 +280,7 @@ class LiftingLineResult():
         return self._cdi
 
     @property
-    def sf(self) -> 'ndarray':
+    def sf(self) -> 'NDArray':
         if self._sf is None:
             sfoqSar = zeros(self.spacing.th.size)
             for n, An in self.An.items():
@@ -301,7 +301,7 @@ class LiftingLineResult():
         return self._sf
 
     @property
-    def bm(self) -> 'ndarray':
+    def bm(self) -> 'NDArray':
         if self._bm is None:
             bmoqSarb = zeros(self.spacing.th.size)
             pimth = pi - self.spacing.th
@@ -697,17 +697,17 @@ class LiftingLineResult():
 class LiftingLinePolar():
 
     name: str = None
-    al_degs: 'ndarray' = None
+    al_degs: 'NDArray' = None
     liftingline: 'LiftingLine' = None
     _num: int = None
     _spacing: 'Spacing' = None
-    _results: Dict[float, LiftingLineResult] = None
-    _CL: 'ndarray' = None
-    _CDi: 'ndarray' = None
-    _CD: 'ndarray' = None
+    _results: dict[float, LiftingLineResult] = None
+    _CL: 'NDArray' = None
+    _CDi: 'NDArray' = None
+    _CD: 'NDArray' = None
 
-    def __init__(self, liftingline: 'LiftingLine', al_degs: 'ndarray',
-                 **kwargs: Dict[str, Any]) -> None:
+    def __init__(self, liftingline: 'LiftingLine', al_degs: 'NDArray',
+                 **kwargs: dict[str, Any]) -> None:
 
         self.liftingline = liftingline
         self.al_degs = al_degs
@@ -737,7 +737,7 @@ class LiftingLinePolar():
         return self._spacing
 
     @property
-    def results(self) -> Dict[float, LiftingLineResult]:
+    def results(self) -> dict[float, LiftingLineResult]:
         if self._results is None:
             self._results = {}
             for al_deg in self.al_degs:
@@ -748,19 +748,19 @@ class LiftingLinePolar():
         return self._results
 
     @property
-    def CL(self) -> 'ndarray':
+    def CL(self) -> 'NDArray':
         if self._CL is None:
             self._CL = asarray([result.CL for result in self.results.values()])
         return self._CL
 
     @property
-    def CDi(self) -> 'ndarray':
+    def CDi(self) -> 'NDArray':
         if self._CDi is None:
             self._CDi = asarray([result.CDi for result in self.results.values()])
         return self._CDi
 
     @property
-    def CD(self) -> 'ndarray':
+    def CD(self) -> 'NDArray':
         if self._CD is None:
             self._CD = asarray([result.CD for result in self.results.values()])
         return self._CD
@@ -813,18 +813,18 @@ class LiftingLineLevelFlight():
     name: str = None
     lift: float = None
     rho: float = None
-    vels: 'ndarray' = None
+    vels: 'NDArray' = None
     liftingline: 'LiftingLine' = None
     _num: int = None
     _spacing: 'Spacing' = None
-    _results: Dict[float, LiftingLineResult] = None
-    _CL: 'ndarray' = None
-    _CD: 'ndarray' = None
-    _LoD: 'ndarray' = None
-    _pwr: 'ndarray' = None
+    _results: dict[float, LiftingLineResult] = None
+    _CL: 'NDArray' = None
+    _CD: 'NDArray' = None
+    _LoD: 'NDArray' = None
+    _pwr: 'NDArray' = None
 
     def __init__(self, liftingline: 'LiftingLine', lift: float, rho: float,
-                 vels: 'ndarray', **kwargs: Dict[str, Any]) -> None:
+                 vels: 'NDArray', **kwargs: dict[str, Any]) -> None:
 
         self.liftingline = liftingline
         self.lift = lift
@@ -856,7 +856,7 @@ class LiftingLineLevelFlight():
         return self._spacing
 
     @property
-    def results(self) -> Dict[float, LiftingLineResult]:
+    def results(self) -> dict[float, LiftingLineResult]:
         if self._results is None:
             self._results = {}
             for vel in self.vels:
@@ -868,25 +868,25 @@ class LiftingLineLevelFlight():
         return self._results
 
     @property
-    def CL(self) -> 'ndarray':
+    def CL(self) -> 'NDArray':
         if self._CL is None:
             self._CL = asarray([result.CL for result in self.results.values()])
         return self._CL
 
     @property
-    def CD(self) -> 'ndarray':
+    def CD(self) -> 'NDArray':
         if self._CD is None:
             self._CD = asarray([result.CD for result in self.results.values()])
         return self._CD
 
     @property
-    def LoD(self) -> 'ndarray':
+    def LoD(self) -> 'NDArray':
         if self._LoD is None:
             self._LoD = asarray([result.LoD for result in self.results.values()])
         return self._LoD
 
     @property
-    def pwr(self) -> 'ndarray':
+    def pwr(self) -> 'NDArray':
         if self._pwr is None:
             self._pwr = asarray([result.pwr for result in self.results.values()])
         return self._pwr
@@ -964,19 +964,19 @@ class LiftingLine():
     cla_shp: 'Shape' = None
     num: int = None
     clmax_shp: 'Shape' = None
-    _clmax: 'ndarray' = None
+    _clmax: 'NDArray' = None
     clmin_shp: 'Shape' = None
-    _clmin: 'ndarray' = None
+    _clmin: 'NDArray' = None
     cd0: float = None
     _area: float = None
     _mac: float = None
     _ar: float = None
     _spacing: 'Spacing' = None
-    _y: 'ndarray' = None
-    _c: 'ndarray' = None
-    _alg: 'ndarray' = None
-    _al0: 'ndarray' = None
-    _cla: 'ndarray' = None
+    _y: 'NDArray' = None
+    _c: 'NDArray' = None
+    _alg: 'NDArray' = None
+    _al0: 'NDArray' = None
+    _cla: 'NDArray' = None
     _Ana: GeneralShape = None
     _An0: GeneralShape = None
     _CLa: float = None
@@ -1035,43 +1035,43 @@ class LiftingLine():
         return self._spacing
 
     @property
-    def y(self) -> 'ndarray':
+    def y(self) -> 'NDArray':
         if self._y is None:
             self._y = self.b/2*self.spacing.s
         return self._y
 
     @property
-    def c(self) -> 'ndarray':
+    def c(self) -> 'NDArray':
         if self._c is None:
             self._c = self.c_shp(self.spacing)
         return self._c
 
     @property
-    def alg(self) -> 'ndarray':
+    def alg(self) -> 'NDArray':
         if self._alg is None:
             self._alg = self.alg_shp(self.spacing)
         return self._alg
 
     @property
-    def al0(self) -> 'ndarray':
+    def al0(self) -> 'NDArray':
         if self._al0 is None:
             self._al0 = self.al0_shp(self.spacing)
         return self._al0
 
     @property
-    def cla(self) -> 'ndarray':
+    def cla(self) -> 'NDArray':
         if self._cla is None:
             self._cla = self.cla_shp(self.spacing)
         return self._cla
 
     @cla.setter
-    def cla(self, cla: 'ndarray') -> None:
+    def cla(self, cla: 'NDArray') -> None:
         if cla.size != self.num:
             raise ValueError('cla is not correct size.')
         self._cla = cla
 
     @property
-    def clmax(self) -> 'ndarray':
+    def clmax(self) -> 'NDArray':
         if self.clmax_shp is None:
             self._clmax = full(self.num, float('inf'))
         else:
@@ -1079,14 +1079,15 @@ class LiftingLine():
         return self._clmax
 
     @property
-    def clmin(self) -> 'ndarray':
+    def clmin(self) -> 'NDArray':
         if self.clmin_shp is None:
             self._clmin = full(self.num, -float('inf'))
         else:
             self._clmin = self.clmin_shp(self.spacing)
         return self._clmin
 
-    def solve(self, cla: Optional['ndarray'] = None) -> Optional[Tuple[GeneralShape, GeneralShape]]:
+    def solve(self, cla: 'NDArray | None' = None) -> tuple[GeneralShape,
+                                                           GeneralShape] | None:
 
         if cla is None:
             claco4b = self.cla*self.c/4/self.b
@@ -1232,11 +1233,11 @@ class LiftingLine():
         ax.plot(self.y, self.Ana(self.spacing), label=self.name)
         return ax
 
-    def return_result_alpha(self, al_deg: float, **kwargs: Dict[str, Any]) -> 'LiftingLineResult':
+    def return_result_alpha(self, al_deg: float, **kwargs: dict[str, Any]) -> 'LiftingLineResult':
         res = LiftingLineResult(self, al_deg, **kwargs)
         return res
 
-    def return_result_CL(self, CL: float, **kwargs: Dict[str, Any]) -> 'LiftingLineResult':
+    def return_result_CL(self, CL: float, **kwargs: dict[str, Any]) -> 'LiftingLineResult':
         al_rad = (CL - self.CL0)/self.CLa
         al_deg = degrees(al_rad)
         res = self.return_result_alpha(al_deg, **kwargs)
@@ -1244,7 +1245,7 @@ class LiftingLine():
         res.CL = CL
         return res
 
-    def return_result_L(self, L: float, **kwargs: Dict[str, Any]) -> 'LiftingLineResult':
+    def return_result_L(self, L: float, **kwargs: dict[str, Any]) -> 'LiftingLineResult':
         rho = kwargs.get('rho', 1.0)
         vel = kwargs.get('vel', 1.0)
         q = rho*vel**2/2
@@ -1254,13 +1255,13 @@ class LiftingLine():
         return res
 
     def return_polar(self, al_degs: Iterable[float],
-                     **kwargs: Dict[str, Any]) -> LiftingLinePolar:
+                     **kwargs: dict[str, Any]) -> LiftingLinePolar:
         al_degs = asarray(al_degs)
         ll_pol = LiftingLinePolar(self, al_degs, **kwargs)
         return ll_pol
 
     def return_level_flight(self, lift: float, rho: float, vels: Iterable[float],
-                            **kwargs: Dict[str, Any]) -> LiftingLineLevelFlight:
+                            **kwargs: dict[str, Any]) -> LiftingLineLevelFlight:
         vels = asarray(vels)
         ll_lev = LiftingLineLevelFlight(self, lift, rho, vels, **kwargs)
         return ll_lev
