@@ -8,8 +8,8 @@ from numpy import (absolute, asarray, divide, full, logical_and, logical_not,
 from .spacing import CosineSpacing
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
     from matplotlib.axes import Axes
+    from numpy.typing import NDArray
 
     from .spacing import Spacing
 
