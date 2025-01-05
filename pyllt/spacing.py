@@ -96,6 +96,9 @@ class Spacing():
             self._n2_sin_n_th[n] = n*self.n_sin_n_th(n)
         return self._n2_sin_n_th[n]
 
+    def stringify(self) -> str:
+        return f'arccos(s)'
+
 
 class CosineSpacing(Spacing):
 

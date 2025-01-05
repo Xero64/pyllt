@@ -95,6 +95,9 @@ class Shape():
     def __str__(self) -> str:
         return 'Shape()'
 
+    def stringify(self) -> str:
+        return '()'
+
 
 class AddShape(Shape):
     arg1: Shape = None
@@ -135,6 +138,9 @@ class AddShape(Shape):
 
     def __str__(self) -> str:
         return f'AddShape({self.arg1}, {self.arg2})'
+
+    def stringify(self) -> str:
+        return f'({self.arg1.stringify()} + {self.arg2.stringify()})'
 
 
 class SubShape(Shape):
@@ -177,6 +183,9 @@ class SubShape(Shape):
     def __str__(self) -> str:
         return f'SubShape({self.arg1}, {self.arg2})'
 
+    def stringify(self) -> str:
+        return f'({self.arg1.stringify()} - {self.arg2.stringify()})'
+
 
 class MulShape(Shape):
     arg1: Shape = None
@@ -217,6 +226,9 @@ class MulShape(Shape):
 
     def __str__(self) -> str:
         return f'MulShape({self.arg1}, {self.arg2})'
+
+    def stringify(self) -> str:
+        return f'({self.arg1.stringify()}*{self.arg2.stringify()})'
 
 
 class DivShape(Shape):
@@ -277,6 +289,9 @@ class DivShape(Shape):
 
     def __str__(self) -> str:
         return f'DivShape({self.arg1}, {self.arg2})'
+
+    def stringify(self) -> str:
+        return f'({self.arg1.stringify()}/{self.arg2.stringify()})'
 
 
 class ConstantShape(Shape):
@@ -349,6 +364,9 @@ class ConstantShape(Shape):
 
     def __str__(self) -> str:
         return f'ConstantShape({self.value})'
+
+    def stringify(self) -> str:
+        return f'{self.value}'
 
 
 class TaperedShape(Shape):
@@ -425,6 +443,8 @@ class TaperedShape(Shape):
     def __str__(self) -> str:
         return f'TaperedShape({self.value_root}, {self.value_tip})'
 
+    def stringify(self) -> str:
+        return f'({self.value_root} - abs(s)*{self.value_root - self.value_tip})'
 
 class GeneralShape(Shape):
 
@@ -601,6 +621,17 @@ class GeneralShape(Shape):
 
     def __str__(self) -> str:
         return f'GeneralShape({self.An})'
+
+    def stringify(self) -> str:
+        outstr = ''
+        for n, An in self.items():
+            if An != 0.0:
+                if n == 1:
+                    outstr += f'({An}*sin(th) + '
+                else:
+                    outstr += f'({An}*sin({n}*th) + '
+        outstr = outstr.rstrip(' + ') + ')'
+        return outstr
 
 
 class EllipticalShape(GeneralShape):
@@ -796,3 +827,14 @@ class InducedAngleShape(Shape):
 
     def __str__(self) -> str:
         return f'InducedAngleShape({self.An})'
+
+    def stringify(self) -> str:
+        outstr = ''
+        for n, An in self.items():
+            if An != 0.0:
+                if n == 1:
+                    outstr += f'({An} + '
+                else:
+                    outstr += f'({An*n}*sin({n}*th)/sin(th) + '
+        outstr = outstr.rstrip(' + ') + ')'
+        return outstr
