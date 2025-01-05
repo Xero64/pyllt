@@ -1,11 +1,8 @@
 #%%
 # Import Dependencies
-
-
 from IPython.display import display_markdown
 from matplotlib.pyplot import figure
 from numpy import asarray, linspace, pi, sqrt
-
 from pyllt import BellShape, ConstantShape, EllipticalShape, LiftingLine
 from pyllt.liftingline import LiftingLineResult
 
