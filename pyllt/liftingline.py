@@ -502,10 +502,13 @@ class LiftingLineResult():
         c_shp = self.liftingline.c_shp
         al0_shp = self.liftingline.al0_shp
         ali_shp = GeneralShape(self.An.An*self.An.n)/GeneralShape([1.0])
-        temp = self.An/c_shp
-        alg_shp = temp*2*b/pi + al0_shp + ali_shp
+        temp = self.An*2/pi*b/c_shp
+        alg_shp = temp + al0_shp + ali_shp
         self.liftingline.alg_shp = alg_shp
         self.liftingline.reset(excl=['_area', '_ar', '_th', '_s', '_y', '_c', '_al0'])
+        al_rad = (self.CL - self.liftingline.CL0)/self.liftingline.CLa
+        self.al_deg = degrees(al_rad)
+        self.reset()
 
     def minimum_induced_drag_optimum(self, Lspec: float, Mspec: float = None,
                                      num: int = 3, display: bool = False) -> 'LiftingLineResult':
@@ -983,7 +986,7 @@ class LiftingLine():
     _CL0: float = None
     _aL0: float = None
 
-    def __init__(self, name: str, b: float, c_shp: 'Shape',
+    def __init__(self, name: str, b: float, c_shp: 'Shape', /,
                  alg_shp: 'Shape' = ConstantShape(0.0),
                  al0_shp: 'Shape' = ConstantShape(0.0),
                  cla_shp: 'Shape' = ConstantShape(2*pi),
