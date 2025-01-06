@@ -2,7 +2,6 @@
 # Import Dependencies
 from IPython.display import display_markdown
 from numpy import linspace
-
 from pyllt import BellShape, ConstantShape, LiftingLine, TaperedShape
 
 #%%
@@ -27,6 +26,9 @@ llr_p.set_lifting_line_twist()
 display_markdown(llr_p)
 
 display_markdown(ll_p)
+
+alg_expr = ll_p.alg_shp.stringify()
+print(f'alg = {alg_expr}')
 
 #%%
 # Plot Geometry

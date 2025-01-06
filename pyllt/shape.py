@@ -366,7 +366,7 @@ class ConstantShape(Shape):
         return f'ConstantShape({self.value})'
 
     def stringify(self) -> str:
-        return f'{self.value}'
+        return f'({self.value})'
 
 
 class TaperedShape(Shape):
@@ -623,13 +623,19 @@ class GeneralShape(Shape):
         return f'GeneralShape({self.An})'
 
     def stringify(self) -> str:
-        outstr = ''
+        outstr = '('
         for n, An in self.items():
             if An != 0.0:
                 if n == 1:
-                    outstr += f'({An}*sin(th) + '
+                    if An == 1.0:
+                        outstr += 'sin(th) + '
+                    else:
+                        outstr += f'{An}*sin(th) + '
                 else:
-                    outstr += f'({An}*sin({n}*th) + '
+                    if An == 1.0:
+                        outstr += f'sin({n}*th) + '
+                    else:
+                        outstr += f'{An}*sin({n}*th) + '
         outstr = outstr.rstrip(' + ') + ')'
         return outstr
 
@@ -829,12 +835,15 @@ class InducedAngleShape(Shape):
         return f'InducedAngleShape({self.An})'
 
     def stringify(self) -> str:
-        outstr = ''
+        outstr = '('
         for n, An in self.items():
-            if An != 0.0:
+            if An == 0.0:
                 if n == 1:
-                    outstr += f'({An} + '
+                    outstr += f'{An} + '
                 else:
-                    outstr += f'({An*n}*sin({n}*th)/sin(th) + '
+                    if An == 1.0:
+                        outstr += f'{n}*sin({n}*th)/sin(th) + '
+                    else:
+                        outstr += f'{An*n}*sin({n}*th)/sin(th) + '
         outstr = outstr.rstrip(' + ') + ')'
         return outstr
