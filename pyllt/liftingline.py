@@ -429,10 +429,12 @@ class LiftingLineResult():
     def stall(self, norm_tol: float = 1e-6, ale_tol: float = 1e-6,
               num_iter: int = 100, display: bool = False) -> 'LiftingLineResult':
 
+        ll = self.liftingline
+
         cla = self.cla
 
-        clmax = self.liftingline.clmax_shp(self.liftingline.spacing)
-        clmin = self.liftingline.clmin_shp(self.liftingline.spacing)
+        clmax = ll.clmax_shp(ll.spacing)
+        clmin = ll.clmin_shp(ll.spacing)
 
         count = 0
 
@@ -440,18 +442,18 @@ class LiftingLineResult():
 
         while norm_dcl >= norm_tol:
 
-            Ana, An0 = self.liftingline.solve(cla)
+            Ana, An0 = ll.solve(cla)
             An = Ana*self.al_rad + An0
 
-            gamma_shp = 2*self.liftingline.b*self.vel*An
+            gamma_shp = 2*ll.b*self.vel*An
             l_shp = self.rho*self.vel*gamma_shp
-            cl_shp = l_shp/self.liftingline.c_shp/self.q
+            cl_shp = l_shp/ll.c_shp/self.q
 
             ali_shp = An*self.n/EllipticalShape()
-            ale_shp = self.al_shp + self.liftingline.alg_shp - self.liftingline.al0_shp - ali_shp
+            ale_shp = self.al_shp + ll.alg_shp - ll.al0_shp - ali_shp
 
-            cl = cl_shp(self.liftingline.spacing)
-            ale = ale_shp(self.liftingline.spacing)
+            cl = cl_shp(ll.spacing)
+            ale = ale_shp(ll.spacing)
 
             ale_chk = absolute(ale) > ale_tol
 
@@ -501,14 +503,14 @@ class LiftingLineResult():
         b = self.liftingline.b
         c_shp = self.liftingline.c_shp
         al0_shp = self.liftingline.al0_shp
-        ali_shp = GeneralShape(self.An.An*self.An.n)/GeneralShape([1.0])
+        ali_shp = InducedAngleShape(self.An.An)
         temp = self.An*2/pi*b/c_shp
         alg_shp = temp + al0_shp + ali_shp
         self.liftingline.alg_shp = alg_shp
-        self.liftingline.reset(excl=['_area', '_ar', '_th', '_s', '_y', '_c', '_al0'])
+        self.liftingline.reset()
         al_rad = (self.CL - self.liftingline.CL0)/self.liftingline.CLa
         self.al_deg = degrees(al_rad)
-        self.reset()
+        self.reset(excl = ['_An'])
 
     def minimum_induced_drag_optimum(self, Lspec: float, Mspec: float = None,
                                      num: int = 3, display: bool = False) -> 'LiftingLineResult':
@@ -967,10 +969,10 @@ class LiftingLine():
     cla_shp: 'Shape' = None
     num: int = None
     clmax_shp: 'Shape' = None
-    _clmax: 'NDArray' = None
     clmin_shp: 'Shape' = None
-    _clmin: 'NDArray' = None
     cd0: float = None
+    _clmax: 'NDArray' = None
+    _clmin: 'NDArray' = None
     _area: float = None
     _mac: float = None
     _ar: float = None
@@ -1204,6 +1206,17 @@ class LiftingLine():
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Spanwise Twist - $\alpha_g$ (deg)')
         ax.plot(self.y, degrees(self.alg), label=self.name)
+        return ax
+
+    def plot_al(self, ax: 'Axes' = None) -> 'Axes':
+        if ax is None:
+            fig = figure()
+            ax = fig.gca()
+            ax.grid(True)
+            ax.set_xlabel(r'Spanwise Coordinate - y (m)')
+            ax.set_ylabel(r'$\alpha_g$ & $\alpha_{l0}$ (deg)')
+        ax.plot(self.y, degrees(self.alg), label='Geometric Twist')
+        ax.plot(self.y, degrees(self.al0), label='Aerodynamic Twist')
         return ax
 
     def plot_cla(self, ax: 'Axes' = None) -> 'Axes':
