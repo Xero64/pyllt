@@ -26,51 +26,51 @@ class Shape():
         return self._area
 
     def __call__(self) -> None:
-        return None
+        raise NotImplementedError('__call__ method not implemented for Shape.')
 
-    def __add__(self, other: 'Shape') -> 'AddShape | Shape':
+    def __add__(self, other: 'Shape') -> 'Shape':
         if isinstance(other, Shape):
-            return AddShape(self, other)
+            return AddShape([self, other])
         else:
             raise TypeError(f'unsupported operand type(s) for +: {type(self)} and {type(other)}')
 
-    def __radd__(self, other: 'Shape') -> 'AddShape | Shape':
+    def __radd__(self, other: 'Shape') -> 'Shape':
         if isinstance(other, Shape):
-            return AddShape(other, self)
+            return AddShape([other, self])
         else:
             raise TypeError(f'unsupported operand type(s) for +: {type(self)} and {type(other)}')
 
-    def __sub__(self, other: 'Shape') -> 'SubShape | Shape':
+    def __sub__(self, other: 'Shape') -> 'Shape':
         if isinstance(other, Shape):
-            return SubShape(self, other)
+            return AddShape([self, -1.0*other])
         else:
             raise TypeError(f'unsupported operand type(s) for -: {type(self)} and {type(other)}')
 
-    def __rsub__(self, other: 'Shape') -> 'SubShape | Shape':
+    def __rsub__(self, other: 'Shape') -> 'Shape':
         if isinstance(other, Shape):
-            return SubShape(other, self)
+            return AddShape(other, -1.0*self)
         else:
             raise TypeError(f'unsupported operand type(s) for -: {type(self)} and {type(other)}')
 
-    def __mul__(self, other: 'Shape | float | int') -> 'MulShape | Shape':
+    def __mul__(self, other: 'Shape') -> 'Shape':
         if isinstance(other, Shape):
             return MulShape(self, other)
         else:
             raise TypeError(f'unsupported operand type(s) for *: {type(self)} and {type(other)}')
 
-    def __rmul__(self, other: 'Shape | float | int') -> 'MulShape | Shape':
+    def __rmul__(self, other: 'Shape') -> 'Shape':
         if isinstance(other, Shape):
             return MulShape(other, self)
         else:
             raise TypeError(f'unsupported operand type(s) for *: {type(self)} and {type(other)}')
 
-    def __div__(self, other: 'Shape | float | int') -> 'DivShape | Shape':
+    def __div__(self, other: 'Shape') -> 'Shape':
         if isinstance(other, Shape):
             return DivShape(self, other)
         else:
             raise TypeError(f'unsupported operand type(s) for /: {type(self)} and {type(other)}')
 
-    def __truediv__(self, other: 'Shape | float | int') -> 'DivShape | Shape':
+    def __truediv__(self, other: 'Shape') -> 'Shape':
         if isinstance(other, Shape):
             return DivShape(self, other)
         else:
@@ -90,101 +90,76 @@ class Shape():
         return ax
 
     def __repr__(self) -> str:
-        return f'<{self.__str__():s}>'
+        return self.__str__()
 
     def __str__(self) -> str:
         return 'Shape()'
 
     def stringify(self) -> str:
-        return '()'
+        raise NotImplementedError('stringify method not implemented for Shape.')
 
 
 class AddShape(Shape):
-    arg1: Shape = None
-    arg2: Shape = None
+    args: list[Shape] = None
 
-    def __init__(self, arg1: Shape, arg2: Shape) -> None:
-        self.arg1 = arg1
-        self.arg2 = arg2
+    def __init__(self, args: Iterable[Shape]) -> None:
+        self.args = list(args)
 
     def __call__(self, spc: 'Spacing') -> 'NDArray':
-        arg1 = self.arg1(spc)
-        arg2 = self.arg2(spc)
-        return arg1 + arg2
+        result = zeros(spc.shape)
+        for arg in self.args:
+            result += arg(spc)
+        return result
+
+    def __add__(self, other: 'Shape') -> 'AddShape':
+        return AddShape(self.args + [other])
+
+    def __radd__(self, other: 'Shape') -> 'AddShape':
+        return AddShape([other] + self.args)
+
+    def __sub__(self, other: 'Shape') -> 'AddShape':
+        return AddShape(self.args + [-1.0*other])
+
+    def __rsub__(self, other: 'Shape') -> 'AddShape':
+        return AddShape([other] + [-1.0*self])
 
     def __mul__(self, other: float | int) -> 'MulShape | AddShape':
         if isinstance(other, (float, int)):
-            return AddShape(self.arg1*other, self.arg2*other)
+            args = [arg*other for arg in self.args]
+            return AddShape(args)
         else:
             return super().__mul__(other)
 
     def __rmul__(self, other: float | int) -> 'MulShape | AddShape':
         if isinstance(other, (float, int)):
-            return AddShape(other*self.arg1, other*self.arg2)
+            args = [other*arg for arg in self.args]
+            return AddShape(args)
         else:
             return super().__rmul__(other)
 
     def __div__(self, other: float | int) -> 'DivShape | AddShape':
         if isinstance(other, (float, int)):
-            return AddShape(self.arg1/other, self.arg2/other)
+            args = [arg/other for arg in self.args]
+            return AddShape(args)
         else:
             return super().__div__(other)
 
     def __truediv__(self, other: float | int) -> 'DivShape | AddShape':
         if isinstance(other, (float, int)):
-            return AddShape(self.arg1/other, self.arg2/other)
+            args = [arg/other for arg in self.args]
+            return AddShape(args)
         else:
             return super().__truediv__(other)
 
     def __str__(self) -> str:
-        return f'AddShape({self.arg1}, {self.arg2})'
+        return f'AddShape({self.args})'
 
     def stringify(self) -> str:
-        return f'({self.arg1.stringify()} + {self.arg2.stringify()})'
-
-
-class SubShape(Shape):
-    arg1: Shape = None
-    arg2: Shape = None
-
-    def __init__(self, arg1: Shape, arg2: Shape) -> None:
-        self.arg1 = arg1
-        self.arg2 = arg2
-
-    def __call__(self, spc: 'Spacing') -> 'NDArray':
-        arg1 = self.arg1(spc)
-        arg2 = self.arg2(spc)
-        return arg1 - arg2
-
-    def __mul__(self, other: float | int) -> 'MulShape | SubShape':
-        if isinstance(other, (float, int)):
-            return SubShape(self.arg1*other, self.arg2*other)
-        else:
-            return super().__mul__(other)
-
-    def __rmul__(self, other: float | int) -> 'MulShape | SubShape':
-        if isinstance(other, (float, int)):
-            return SubShape(other*self.arg1, other*self.arg2)
-        else:
-            return super().__rmul__(other)
-
-    def __div__(self, other: float | int) -> 'DivShape | SubShape':
-        if isinstance(other, (float, int)):
-            return SubShape(self.arg1/other, self.arg2/other)
-        else:
-            return super().__div__(other)
-
-    def __truediv__(self, other: float | int) -> 'DivShape | SubShape':
-        if isinstance(other, (float, int)):
-            return SubShape(self.arg1/other, self.arg2/other)
-        else:
-            return super().__truediv__(other)
-
-    def __str__(self) -> str:
-        return f'SubShape({self.arg1}, {self.arg2})'
-
-    def stringify(self) -> str:
-        return f'({self.arg1.stringify()} - {self.arg2.stringify()})'
+        outstr = '('
+        for arg in self.args:
+            outstr += f'{arg.stringify()} + '
+        outstr = outstr.rstrip(' + ') + ')'
+        return outstr
 
 
 class MulShape(Shape):
@@ -200,27 +175,35 @@ class MulShape(Shape):
         arg2 = self.arg2(spc)
         return arg1*arg2
 
-    def __mul__(self, other: float | int) -> 'MulShape':
+    def __mul__(self, other: Shape | float | int) -> 'MulShape':
         if isinstance(other, (float, int)):
-            return MulShape(self.arg1, self.arg2*other)
+            return MulShape(self.arg1*other, self.arg2)
+        elif isinstance(other, ConstantShape):
+            return MulShape(self.arg1*other.value, self.arg2)
         else:
             return super().__mul__(other)
 
     def __rmul__(self, other: Shape | float | int) -> 'MulShape':
         if isinstance(other, (float, int)):
             return MulShape(other*self.arg1, self.arg2)
+        elif isinstance(other, ConstantShape):
+            return MulShape(other.value*self.arg1, self.arg2)
         else:
             return super().__rmul__(other)
 
     def __div__(self, other: Shape | float | int) -> 'DivShape | MulShape':
         if isinstance(other, (float, int)):
             return MulShape(self.arg1, self.arg2/other)
+        elif isinstance(other, ConstantShape):
+            return MulShape(self.arg1, self.arg2/other.value)
         else:
             return super().__div__(other)
 
     def __truediv__(self, other: Shape | float | int) -> 'DivShape | MulShape':
         if isinstance(other, (float, int)):
             return MulShape(self.arg1, self.arg2/other)
+        elif isinstance(other, ConstantShape):
+            return MulShape(self.arg1, self.arg2/other.value)
         else:
             return super().__truediv__(other)
 
@@ -307,30 +290,38 @@ class ConstantShape(Shape):
             self._area = 2*self.value
         return self._area
 
-    def as_radians(self) -> 'TaperedShape':
+    def as_radians(self) -> 'ConstantShape':
         self.value = radians(self.value)
         return self
 
-    def __add__(self, other: 'ConstantShape | Shape') -> 'ConstantShape | AddShape':
-        if isinstance(other, ConstantShape):
+    def __add__(self, other: Shape | float | int) -> 'ConstantShape | AddShape':
+        if isinstance(other, (float, int)):
+            return ConstantShape(self.value + other)
+        elif isinstance(other, ConstantShape):
             return ConstantShape(self.value + other.value)
         else:
             return super().__add__(other)
 
-    def __radd__(self, other: 'ConstantShape | Shape') -> 'ConstantShape | AddShape':
+    def __radd__(self, other: Shape | float | int) -> 'ConstantShape | AddShape':
+        if isinstance(other, (float, int)):
+            return ConstantShape(other + self.value)
         if isinstance(other, ConstantShape):
             return ConstantShape(self.value + other.value)
         else:
             return super().__radd__(other)
 
-    def __sub__(self, other: 'ConstantShape | Shape') -> 'ConstantShape | SubShape':
-        if isinstance(other, ConstantShape):
+    def __sub__(self, other: Shape | float | int) -> 'ConstantShape | AddShape':
+        if isinstance(other, (float, int)):
+            return ConstantShape(self.value - other)
+        elif isinstance(other, ConstantShape):
             return ConstantShape(self.value - other.value)
         else:
             return super().__sub__(other)
 
-    def __rsub__(self, other: 'ConstantShape | Shape') -> 'ConstantShape | SubShape':
-        if isinstance(other, ConstantShape):
+    def __rsub__(self, other: Shape | float | int) -> 'ConstantShape | AddShape':
+        if isinstance(other, (float, int)):
+            return ConstantShape(other - self.value)
+        elif isinstance(other, ConstantShape):
             return ConstantShape(other.value - self.value)
         else:
             return super().__rsub__(other)
@@ -338,24 +329,32 @@ class ConstantShape(Shape):
     def __mul__(self, other: Shape | float | int) -> 'ConstantShape | MulShape':
         if isinstance(other, (float, int)):
             return ConstantShape(self.value*other)
+        elif isinstance(other, ConstantShape):
+            return ConstantShape(self.value*other.value)
         else:
             return super().__mul__(other)
 
     def __rmul__(self, other: Shape | float | int) -> 'ConstantShape | MulShape':
         if isinstance(other, (float, int)):
             return ConstantShape(other*self.value)
+        elif isinstance(other, ConstantShape):
+            return ConstantShape(other.value*self.value)
         else:
             return super().__rmul__(other)
 
     def __div__(self, other: Shape | float | int) -> 'ConstantShape | DivShape':
         if isinstance(other, (float, int)):
             return ConstantShape(self.value/other)
+        elif isinstance(other, ConstantShape):
+            return ConstantShape(self.value/other.value)
         else:
             return super().__div__(other)
 
     def __truediv__(self, other: Shape | float | int) -> 'ConstantShape | DivShape':
         if isinstance(other, (float, int)):
             return ConstantShape(self.value/other)
+        elif isinstance(other, ConstantShape):
+            return ConstantShape(self.value/other.value)
         else:
             return super().__truediv__(other)
 
@@ -401,13 +400,13 @@ class TaperedShape(Shape):
         else:
             return super().__radd__(other)
 
-    def __sub__(self, other: 'TaperedShape | Shape') -> 'TaperedShape | SubShape':
+    def __sub__(self, other: 'TaperedShape | Shape') -> 'TaperedShape | AddShape':
         if isinstance(other, TaperedShape):
             return TaperedShape(self.value_root - other.value_root, self.value_tip - other.value_tip)
         else:
             return super().__sub__(other)
 
-    def __rsub__(self, other: 'TaperedShape | Shape') -> 'TaperedShape | SubShape':
+    def __rsub__(self, other: 'TaperedShape | Shape') -> 'TaperedShape | AddShape':
         if isinstance(other, TaperedShape):
             return TaperedShape(other.value_root - self.value_root, other.value_tip - self.value_tip)
         else:
@@ -445,6 +444,7 @@ class TaperedShape(Shape):
 
     def stringify(self) -> str:
         return f'({self.value_root} - abs(s)*{self.value_root - self.value_tip})'
+
 
 class GeneralShape(Shape):
 
@@ -559,7 +559,7 @@ class GeneralShape(Shape):
         else:
             return super().__radd__(other)
 
-    def __sub__(self, other: 'GeneralShape | Shape') -> 'GeneralShape | SubShape':
+    def __sub__(self, other: 'GeneralShape | Shape') -> 'GeneralShape | AddShape':
         if isinstance(other, GeneralShape):
             if self.size == other.size:
                 result = GeneralShape(self.An - other.An)
@@ -576,7 +576,7 @@ class GeneralShape(Shape):
         else:
             return super().__sub__(other)
 
-    def __rsub__(self, other: 'GeneralShape | Shape') -> 'GeneralShape | SubShape':
+    def __rsub__(self, other: 'GeneralShape | Shape') -> 'GeneralShape | AddShape':
         if isinstance(other, GeneralShape):
             if self.size == other.size:
                 result = GeneralShape(other.An - self.An)
@@ -789,7 +789,7 @@ class InducedAngleShape(Shape):
         else:
             return super().__radd__(other)
 
-    def __sub__(self, other: 'InducedAngleShape | Shape') -> 'InducedAngleShape | SubShape':
+    def __sub__(self, other: 'InducedAngleShape | Shape') -> 'InducedAngleShape | AddShape':
         if isinstance(other, InducedAngleShape):
             if self.size == other.size:
                 result = InducedAngleShape(self.An - other.An)
@@ -801,7 +801,7 @@ class InducedAngleShape(Shape):
         else:
             return super().__sub__(other)
 
-    def __rsub__(self, other: 'InducedAngleShape | Shape') -> 'InducedAngleShape | SubShape':
+    def __rsub__(self, other: 'InducedAngleShape | Shape') -> 'InducedAngleShape | AddShape':
         if isinstance(other, InducedAngleShape):
             if self.size == other.size:
                 result = InducedAngleShape(other.An - self.An)
@@ -837,7 +837,7 @@ class InducedAngleShape(Shape):
     def stringify(self) -> str:
         outstr = '('
         for n, An in self.items():
-            if An == 0.0:
+            if An != 0.0:
                 if n == 1:
                     outstr += f'{An} + '
                 else:
