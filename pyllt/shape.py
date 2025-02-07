@@ -2,8 +2,8 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING, Any
 
 from matplotlib.pyplot import figure
-from numpy import (absolute, asarray, divide, full, logical_and, logical_not,
-                   ndarray, pi, radians, zeros)
+from numpy import (absolute, asarray, divide, full, logical_and,
+                   logical_not, ndarray, pi, zeros)
 
 from .spacing import CosineSpacing
 
@@ -75,6 +75,12 @@ class Shape():
             return DivShape(self, other)
         else:
             raise TypeError(f'unsupported operand type(s) for /: {type(self)} and {type(other)}')
+
+    def as_radians(self) -> 'Shape':
+        return self*pi/180
+
+    def as_degrees(self) -> 'Shape':
+        return self/pi*180
 
     def plot(self, ax: 'Axes | None' = None, num: int = 100,
              **kwargs: dict[str, Any]) -> 'Axes':
@@ -290,10 +296,6 @@ class ConstantShape(Shape):
             self._area = 2*self.value
         return self._area
 
-    def as_radians(self) -> 'ConstantShape':
-        self.value = radians(self.value)
-        return self
-
     def __add__(self, other: Shape | float | int) -> 'ConstantShape | AddShape':
         if isinstance(other, (float, int)):
             return ConstantShape(self.value + other)
@@ -382,11 +384,6 @@ class TaperedShape(Shape):
         if self._area is None:
             self._area = self.value_root + self.value_tip
         return self._area
-
-    def as_radians(self) -> 'TaperedShape':
-        self.value_root = radians(self.value_root)
-        self.value_tip = radians(self.value_tip)
-        return self
 
     def __add__(self, other: 'TaperedShape | Shape') -> 'TaperedShape | AddShape':
         if isinstance(other, TaperedShape):
