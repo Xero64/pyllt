@@ -550,114 +550,125 @@ class LiftingLineResult():
             print(f'An = {An}\n')
         return self
 
-    def plot_gamma(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_gamma(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Circulation Distribution - $\Gamma$ (m/s)')
-        ax.plot(self.y, self.gamma, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.gamma, **kwargs)
         return ax
 
-    def plot_ali(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_ali(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Induced Angle Distribution - $\alpha_i$ (deg)')
-        ax.plot(self.y, degrees(self.ali), label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, degrees(self.ali), **kwargs)
         return ax
 
-    def plot_wi(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_wi(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Induced Wash Distribution $w_i$ (m/s)')
-        ax.plot(self.y, self.wi, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.wi, **kwargs)
         return ax
 
-    def plot_ale(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_ale(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Effective Angle Distribution $\alpha_{eff}$ (deg)')
-        ax.plot(self.y, degrees(self.ale), label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, degrees(self.ale), **kwargs)
         return ax
 
-    def plot_cla(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_cla(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Lift Coefficient Slope - $c_{la}$ (1/rad)')
-        ax.plot(self.liftingline.y, self.cla, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.liftingline.y, self.cla, **kwargs)
         return ax
 
-    def plot_l(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_l(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Lift Distribution - l (N/m)')
-        ax.plot(self.y, self.l, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.l, **kwargs)
         return ax
 
-    def plot_cl(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_cl(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Lift Coefficient Distribution - $c_l$')
-        ax.plot(self.y, self.cl, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.cl, **kwargs)
         return ax
 
-    def plot_di(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_di(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Induced Drag Distribution - $d_i$ (N/m)')
-        ax.plot(self.y, self.di, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.di, **kwargs)
         return ax
 
-    def plot_cdi(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_cdi(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Induced Drag Coefficient - $c_{di}$')
-        ax.plot(self.y, self.cdi, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.cdi, **kwargs)
         return ax
 
-    def plot_sf(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_sf(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Shear Force - $SF$ (N)')
-        ax.plot(self.y, self.sf, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.sf, **kwargs)
         return ax
 
-    def plot_bm(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_bm(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Bending Moment - $BM$ (N.m)')
-        ax.plot(self.y, self.bm, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.bm, **kwargs)
         return ax
 
     def to_mdobj(self) -> MDReport:
@@ -1178,34 +1189,37 @@ class LiftingLine():
                 ll.__dict__[attr] = self.__dict__[attr]
         return ll
 
-    def plot_c(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_c(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Chord - c (m)')
-        ax.plot(self.y, self.c, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.c, **kwargs)
         return ax
 
-    def plot_al0(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_al0(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Zero Lift Angle of Attack -w $\alpha_{l0}$ (deg)')
-        ax.plot(self.y, degrees(self.al0), label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, degrees(self.al0), **kwargs)
         return ax
 
-    def plot_alg(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_alg(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Spanwise Twist - $\alpha_g$ (deg)')
-        ax.plot(self.y, degrees(self.alg), label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, degrees(self.alg), **kwargs)
         return ax
 
     def plot_al(self, ax: 'Axes' = None) -> 'Axes':
@@ -1219,34 +1233,37 @@ class LiftingLine():
         ax.plot(self.y, degrees(self.al0), label='Aerodynamic Twist')
         return ax
 
-    def plot_cla(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_cla(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Lift Coefficient Slope - $c_{la}$ (1/rad)')
-        ax.plot(self.y, self.cla, label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.cla, **kwargs)
         return ax
 
-    def plot_An0(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_An0(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Zero Lift Distribution Shape - $A_{n0}$')
-        ax.plot(self.y, self.An0(self.spacing), label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.An0(self.spacing), **kwargs)
         return ax
 
-    def plot_Ana(self, ax: 'Axes' = None) -> 'Axes':
+    def plot_Ana(self, ax: 'Axes' = None, **kwargs: dict[str, Any]) -> 'Axes':
         if ax is None:
             fig = figure()
             ax = fig.gca()
             ax.grid(True)
             ax.set_xlabel(r'Spanwise Coordinate - y (m)')
             ax.set_ylabel(r'Lift Distribution Shape Variation - $A_{na}$')
-        ax.plot(self.y, self.Ana(self.spacing), label=self.name)
+        kwargs.setdefault('label', self.name)
+        ax.plot(self.y, self.Ana(self.spacing), **kwargs)
         return ax
 
     def return_result_alpha(self, al_deg: float, **kwargs: dict[str, Any]) -> 'LiftingLineResult':
