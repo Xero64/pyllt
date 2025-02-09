@@ -443,6 +443,122 @@ class TaperedShape(Shape):
         return f'({self.value_root} - abs(s)*{self.value_root - self.value_tip})'
 
 
+class PolyShape(Shape):
+    args: 'NDArray' = None
+
+    def __init__(self, args: list[float]) -> None:
+        self.args = asarray(args, dtype=float)
+
+    def __call__(self, spc: 'Spacing') -> 'NDArray':
+        result = zeros(spc.shape)
+        for i, arg in enumerate(self.args):
+            result += arg*spc.abs_s**i
+        return result
+
+    def derivative(self, spc: 'Spacing') -> 'NDArray':
+        result = zeros(spc.shape)
+        for i, arg in enumerate(self.args):
+            if i > 0:
+                result += i*arg*spc.abs_s**(i - 1)
+        return result
+
+    @property
+    def area(self) -> float:
+        if self._area is None:
+            self._area = 0.0
+            for i, arg in enumerate(self.args):
+                self._area += 2*arg/(i + 1)
+        return self._area
+
+    def __add__(self, other: 'PolyShape | Shape') -> 'PolyShape | AddShape':
+        if isinstance(other, PolyShape):
+            if self.args.size == other.args.size:
+                result = PolyShape(self.args + other.args)
+            elif self.args.size > other.args.size:
+                result = PolyShape(self.args[:other.args.size] + other.args)
+            elif self.args.size < other.args.size:
+                result = PolyShape(self.args + other.args[:self.args.size])
+            return result
+        else:
+            return super().__add__(other)
+
+    def __radd__(self, other: 'PolyShape | Shape') -> 'PolyShape | AddShape':
+        if isinstance(other, PolyShape):
+            if self.args.size == other.args.size:
+                result = PolyShape(other.args + self.args)
+            elif self.args.size > other.args.size:
+                result = PolyShape(other.args[:self.args.size] + self.args)
+            elif self.args.size < other.args.size:
+                result = PolyShape(other.args + self.args[:other.args.size])
+            return result
+        else:
+            return super().__radd__(other)
+
+    def __sub__(self, other: 'PolyShape | Shape') -> 'PolyShape | AddShape':
+        if isinstance(other, PolyShape):
+            if self.args.size == other.args.size:
+                result = PolyShape(self.args - other.args)
+            elif self.args.size > other.args.size:
+                result = PolyShape(self.args[:other.args.size] - other.args)
+            elif self.args.size < other.args.size:
+                result = PolyShape(self.args - other.args[:self.args.size])
+            return result
+        else:
+            return super().__sub__(other)
+
+    def __rsub__(self, other: 'PolyShape | Shape') -> 'PolyShape | AddShape':
+        if isinstance(other, PolyShape):
+            if self.args.size == other.args.size:
+                result = PolyShape(other.args - self.args)
+            elif self.args.size > other.args.size:
+                result = PolyShape(other.args[:self.args.size] - self.args)
+            elif self.args.size < other.args.size:
+                result = PolyShape(other.args - self.args[:other.args.size])
+            return result
+        else:
+            return super().__rsub__(other)
+
+    def __mul__(self, other: 'float | int | Shape') -> 'PolyShape | MulShape':
+        if isinstance(other, (float, int)):
+            return PolyShape(self.args*other)
+        else:
+            return super().__mul__(other)
+
+    def __rmul__(self, other: 'float | int | Shape') -> 'PolyShape | MulShape':
+        if isinstance(other, (float, int)):
+            return PolyShape(other*self.args)
+        else:
+            return super().__rmul__(other)
+
+    def __div__(self, other: 'float | int | Shape') -> 'PolyShape | DivShape':
+        if isinstance(other, (float, int)):
+            return PolyShape(self.args/other)
+        else:
+            return super().__div__(other)
+
+    def __truediv__(self, other: 'float | int | Shape') -> 'PolyShape | DivShape':
+        if isinstance(other, (float, int)):
+            return PolyShape(self.args/other)
+        else:
+            return super().__truediv__(other)
+
+    def __str__(self) -> str:
+        return f'PolyShape({self.args})'
+
+    def stringify(self) -> str:
+        outstr = '('
+        for i, arg in enumerate(self.args):
+            if arg != 0.0:
+                if i == 0:
+                    outstr += f'{arg} + '
+                elif i == 1:
+                    outstr += f'{arg}*s + '
+                else:
+                    outstr += f'{arg}*s^{i} + '
+        outstr = outstr.rstrip(' + ') + ')'
+        return outstr
+
+
 class GeneralShape(Shape):
 
     An: 'NDArray' = None

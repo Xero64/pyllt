@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from numpy import arccos, cos, flip, hstack, linspace, pi, sin
+from numpy import absolute, arccos, cos, flip, hstack, linspace, pi, sin
 
 if TYPE_CHECKING:
     from numpy.typing import NDArray
@@ -17,6 +17,7 @@ class Spacing():
     _n_cos_n_th: dict[int, 'NDArray'] = None
     _n2_sin_n_th: dict[int, 'NDArray'] = None
     _n2_cos_n_th: dict[int, 'NDArray'] = None
+    _abs_s: 'NDArray' = None
 
     def __init__(self, num: int = 101, sol: bool = False) -> None:
         self.num = num
@@ -35,6 +36,12 @@ class Spacing():
                 s = cos(th)
                 self._s = hstack((-flip(s), s))
         return self._s
+
+    @property
+    def abs_s(self) -> 'NDArray':
+        if self._abs_s is None:
+            self._abs_s = absolute(self.s)
+        return self._abs_s
 
     @property
     def th(self) -> 'NDArray':

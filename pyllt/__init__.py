@@ -4,3 +4,4 @@ from .shape import ConstantShape as ConstantShape
 from .shape import EllipticalShape as EllipticalShape
 from .shape import GeneralShape as GeneralShape
 from .shape import TaperedShape as TaperedShape
+from .shape import PolyShape as PolyShape
