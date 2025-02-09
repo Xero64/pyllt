@@ -554,7 +554,7 @@ class PolyShape(Shape):
                 elif i == 1:
                     outstr += f'{arg}*s + '
                 else:
-                    outstr += f'{arg}*s^{i} + '
+                    outstr += f'{arg}*s**{i} + '
         outstr = outstr.rstrip(' + ') + ')'
         return outstr
 
