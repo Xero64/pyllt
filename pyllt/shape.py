@@ -160,10 +160,10 @@ class AddShape(Shape):
     def __str__(self) -> str:
         return f'AddShape({self.args})'
 
-    def stringify(self) -> str:
+    def stringify(self, frm: str = '.6g') -> str:
         outstr = '('
         for arg in self.args:
-            outstr += f'{arg.stringify()} + '
+            outstr += f'{arg.stringify(frm)} + '
         outstr = outstr.rstrip(' + ') + ')'
         return outstr
 
@@ -216,8 +216,8 @@ class MulShape(Shape):
     def __str__(self) -> str:
         return f'MulShape({self.arg1}, {self.arg2})'
 
-    def stringify(self) -> str:
-        return f'({self.arg1.stringify()}*{self.arg2.stringify()})'
+    def stringify(self, frm: str = '.6g') -> str:
+        return f'({self.arg1.stringify(frm)}*{self.arg2.stringify(frm)})'
 
 
 class DivShape(Shape):
@@ -279,8 +279,8 @@ class DivShape(Shape):
     def __str__(self) -> str:
         return f'DivShape({self.arg1}, {self.arg2})'
 
-    def stringify(self) -> str:
-        return f'({self.arg1.stringify()}/{self.arg2.stringify()})'
+    def stringify(self, frm: str = '.6g') -> str:
+        return f'({self.arg1.stringify(frm)}/{self.arg2.stringify(frm)})'
 
 
 class ConstantShape(Shape):
@@ -366,8 +366,8 @@ class ConstantShape(Shape):
     def __str__(self) -> str:
         return f'ConstantShape({self.value})'
 
-    def stringify(self) -> str:
-        return f'({self.value})'
+    def stringify(self, frm: str = '.6g') -> str:
+        return f'({self.value.__format__(frm)})'
 
 
 class TaperedShape(Shape):
@@ -439,8 +439,10 @@ class TaperedShape(Shape):
     def __str__(self) -> str:
         return f'TaperedShape({self.value_root}, {self.value_tip})'
 
-    def stringify(self) -> str:
-        return f'({self.value_root} - abs(s)*{self.value_root - self.value_tip})'
+    def stringify(self, frm: str = '.6g') -> str:
+        val_r = self.value_root.__format__(frm)
+        val_d = (self.value_root - self.value_tip).__format__(frm)
+        return f'({val_r} - abs(s)*{val_d})'
 
 
 class PolyShape(Shape):
@@ -545,16 +547,16 @@ class PolyShape(Shape):
     def __str__(self) -> str:
         return f'PolyShape({self.args})'
 
-    def stringify(self) -> str:
+    def stringify(self, frm: str = '.6g') -> str:
         outstr = '('
         for i, arg in enumerate(self.args):
             if arg != 0.0:
                 if i == 0:
-                    outstr += f'{arg} + '
+                    outstr += f'{arg.__format__(frm)} + '
                 elif i == 1:
-                    outstr += f'{arg}*s + '
+                    outstr += f'{arg.__format__(frm)}*s + '
                 else:
-                    outstr += f'{arg}*s**{i} + '
+                    outstr += f'{arg.__format__(frm)}*s**{i} + '
         outstr = outstr.rstrip(' + ') + ')'
         return outstr
 
@@ -735,7 +737,7 @@ class GeneralShape(Shape):
     def __str__(self) -> str:
         return f'GeneralShape({self.An})'
 
-    def stringify(self) -> str:
+    def stringify(self, frm: str = '.6g') -> str:
         outstr = '('
         for n, An in self.items():
             if An != 0.0:
@@ -743,12 +745,12 @@ class GeneralShape(Shape):
                     if An == 1.0:
                         outstr += 'sin(th) + '
                     else:
-                        outstr += f'{An}*sin(th) + '
+                        outstr += f'{An.__format__(frm)}*sin(th) + '
                 else:
                     if An == 1.0:
                         outstr += f'sin({n}*th) + '
                     else:
-                        outstr += f'{An}*sin({n}*th) + '
+                        outstr += f'{An.__format__(frm)}*sin({n}*th) + '
         outstr = outstr.rstrip(' + ') + ')'
         return outstr
 
@@ -947,16 +949,17 @@ class InducedAngleShape(Shape):
     def __str__(self) -> str:
         return f'InducedAngleShape({self.An})'
 
-    def stringify(self) -> str:
+    def stringify(self, frm: str = '.6g') -> str:
         outstr = '('
         for n, An in self.items():
             if An != 0.0:
                 if n == 1:
-                    outstr += f'{An} + '
+                    outstr += f'{An.__format__(frm)} + '
                 else:
                     if An == 1.0:
                         outstr += f'{n}*sin({n}*th)/sin(th) + '
                     else:
-                        outstr += f'{An*n}*sin({n}*th)/sin(th) + '
+                        nAn = n*An
+                        outstr += f'{nAn.__format__(frm)}*sin({n}*th)/sin(th) + '
         outstr = outstr.rstrip(' + ') + ')'
         return outstr
